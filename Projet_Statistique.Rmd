@@ -234,8 +234,8 @@ cat("P-value Shapiro-Wilk - Femmes :", round(shapiro_F$p.value, 4), "\n")
 #Test de comparaison et taille d'effet
 
 
-# Chargement du package pour Cohen's d (à ajouter une seule fois au début si pas déjà fait)
-# library(effsize)
+# Chargement du package pour Cohen's d
+
 ```{r}
 
 

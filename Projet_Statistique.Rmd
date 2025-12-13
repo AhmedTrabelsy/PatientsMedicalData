@@ -1,0 +1,264 @@
+---
+title: 'Projet Statistique : Analyse des Données Médicales'
+author: "Ton Nom"
+date: "`r format(Sys.Date(), '%d/%m/%Y')`"
+output:
+  html_document:
+    theme: flatly
+    toc: true
+    toc_float: true
+    number_sections: true
+  pdf_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+# 1. Introduction
+
+## 1.1 Contexte
+Ce projet vise à étudier un jeu de données médicales contenant des informations sur les patients : âge, sexe, poids, tension artérielle, cholestérol, groupe de traitement, durée de suivi et score de symptômes.
+
+## 1.2 Problématique
+> Les caractéristiques cliniques (âge, poids, tension, cholestérol) et le traitement influencent-ils significativement l’état des patients (score de symptômes) ?
+
+## 1.3 Objectifs
+- Décrire les variables (analyse univariée)
+- Étudier les relations entre variables (analyse bivariée)
+- Construire un modèle explicatif (analyse multivariée)
+- Tester les hypothèses statistiques
+
+# 2. Préparation des données
+
+## 2.1 Chargement des packages
+
+```{r packages}
+# Installer les packages si nécessaires :
+# install.packages(c("tidyverse", "skimr", "GGally", "psych", "broom"))
+
+library(tidyverse)
+library(skimr)
+library(GGally)
+library(psych)
+library(broom)
+library(effsize)
+```
+
+## 2.2 Importation du jeu de données
+
+```{r import}
+data <- read.csv(file.choose(),
+                 sep = ";",
+                 header = TRUE,
+                 stringsAsFactors = FALSE,
+                 na.strings = c("", "NA", "NaN", "NULL", "?"))
+
+# 👀 Aperçu rapide du jeu de données
+head(data)
+str(data)
+```
+
+## 2.3 Nettoyage des données
+
+```{r cleaning}
+data <- data %>%
+  rename(
+    ID = ID,
+    Age = Age,
+    Sexe = Sexe,
+    Poids = Poids,
+    Tension = Tension,
+    Cholesterol = Cholesterol,
+    Groupe_Traitement = Groupe_Traitement,
+    Suivi_Jours = Suivi_Jours,
+    Symptom_Score = Symptom_Score
+  ) %>%
+  mutate(
+    Sexe = as.factor(Sexe),
+    Groupe_Traitement = as.factor(Groupe_Traitement)
+  )
+
+# Suppression des doublons
+data <- distinct(data)
+
+# Résumé rapide
+skim(data)
+```
+
+## 2.4 Gestion des valeurs manquantes
+
+```{r missing-values}
+colSums(is.na(data))
+data <- na.omit(data)
+nrow(data)
+```
+
+# 3. Analyse univariée
+
+## 3.1 Variables quantitatives
+
+```{r univariate-num}
+quant_vars <- c("Age", "Poids", "Tension", "Cholesterol", "Suivi_Jours", "Symptom_Score")
+
+data %>%
+  select(all_of(quant_vars)) %>%
+  summary()
+
+# Histogrammes
+for (v in quant_vars) {
+  print(
+    ggplot(data, aes_string(x = v)) +
+      geom_histogram(bins = 20, fill = "steelblue", color = "white") +
+      geom_density(alpha = 0.4, color = "red") +
+      labs(title = paste("Distribution de", v))
+  )
+}
+```
+
+### Test de normalité (Shapiro-Wilk)
+
+```{r normality}
+for (v in quant_vars) {
+  cat("Variable :", v, "\n")
+  x <- data[[v]]
+  if (length(x) > 5000) x <- sample(x, 5000)
+  print(shapiro.test(x))
+  cat("\n---------------------------------\n")
+}
+```
+
+## 3.2 Variables qualitatives
+
+```{r univariate-cat}
+table(data$Sexe)
+table(data$Groupe_Traitement)
+
+ggplot(data, aes(x = Sexe)) +
+  geom_bar(fill = "#3498db") +
+  labs(title = "Répartition par sexe", x = "Sexe", y = "Effectif")
+
+ggplot(data, aes(x = Groupe_Traitement)) +
+  geom_bar(fill = "#2ecc71") +
+  labs(title = "Répartition par groupe de traitement", x = "Groupe", y = "Effectif")
+```
+
+# 4. Analyse bivariée
+
+## 4.1 Corrélations entre variables quantitatives
+
+```{r correlation}
+cor_matrix <- cor(data[, quant_vars])
+cor_matrix
+
+GGally::ggcorr(data[, quant_vars], label = TRUE)
+```
+
+### Exemple : Corrélation entre âge et score de symptômes
+
+```{r cor-age}
+cor.test(data$Age, data$Symptom_Score)
+
+ggplot(data, aes(x = Age, y = Symptom_Score)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "red") +
+  labs(title = "Âge vs Score de symptômes")
+```
+
+## 4.2 Comparaison de moyennes (score selon le traitement)
+
+```{r anova}
+ggplot(data, aes(x = Groupe_Traitement, y = Symptom_Score, fill = Groupe_Traitement)) +
+  geom_boxplot() +
+  labs(title = "Score selon le groupe de traitement")
+
+# Test ANOVA
+anova_test <- aov(Symptom_Score ~ Groupe_Traitement, data = data)
+summary(anova_test)
+
+# Test non paramétrique
+kruskal.test(Symptom_Score ~ Groupe_Traitement, data = data)
+```
+
+## 4.3 Variables qualitatives (Sexe vs Groupe de traitement)
+
+```{r chi2}
+tab <- table(data$Sexe, data$Groupe_Traitement)
+tab
+chisq.test(tab)
+```
+
+
+
+### Interprétation simplifiée
+
+
+
+
+# 6. Limites et perspectives
+
+- Taille d’échantillon limitée
+- Variables non observées (régime, antécédents…)
+- Données manquantes ou non normalisées
+- Perspectives : ajout de variables, modèles non linéaires, tests robustes
+
+# 7. Conclusion
+
+Cette étude montre les relations entre les caractéristiques des patients et leur état de santé.
+Les analyses descriptives, corrélationnelles et de régression permettent de formuler et vérifier des hypothèses statistiques fiables.
+
+## 4.4 Comparaison du Symptom_Score entre Hommes et Femmes
+
+### Visualisation : Boxplot avec points individuels
+
+```{r boxplot-sexe, fig.width=8, fig.height=6}
+ggplot(data, aes(x = Sexe, y = Symptom_Score, fill = Sexe)) +
+  geom_boxplot(alpha = 0.6, outlier.shape = NA) +  # Boîtes semi-transparentes sans doublons d'outliers
+  geom_jitter(width = 0.2, alpha = 0.6, size = 2) +  # Points individuels pour voir la distribution
+  scale_fill_manual(values = c("F" = "#e74c3c", "M" = "#3498db")) +
+  labs(title = "Comparaison du Score de Symptômes par Sexe",
+       x = "Sexe",
+       y = "Score de Symptômes") +
+  theme_minimal(base_size = 14)
+```
+
+#Vérification de la normalité dans chaque groupe
+```{r}
+shapiro_H <- shapiro.test(data$Symptom_Score[data$Sexe == "M"])
+shapiro_F <- shapiro.test(data$Symptom_Score[data$Sexe == "F"])
+
+cat("P-value Shapiro-Wilk - Hommes :", round(shapiro_H$p.value, 4), "\n")
+cat("P-value Shapiro-Wilk - Femmes :", round(shapiro_F$p.value, 4), "\n")
+```
+#Test de comparaison et taille d'effet
+
+
+# Chargement du package pour Cohen's d (à ajouter une seule fois au début si pas déjà fait)
+# library(effsize)
+```{r}
+
+
+
+if(shapiro_H$p.value > 0.05 & shapiro_F$p.value > 0.05) {
+  cat("\n--- Test paramétrique : t-test de Welch ---\n")
+  test_res <- t.test(Symptom_Score ~ Sexe, data = data, var.equal = FALSE)
+  print(test_res)
+  
+  library(effsize)
+  d_res <- cohen.d(Symptom_Score ~ Sexe, data = data)
+  cat("\nTaille d'effet :\n")
+  print(d_res)
+  
+} else {
+  cat("\n--- Test non paramétrique : Wilcoxon-Mann-Whitney ---\n")
+  test_res <- wilcox.test(Symptom_Score ~ Sexe, data = data)
+  print(test_res)
+  
+  # Taille d'effet r (approximation)
+  z <- qnorm(test_res$p.value / 2)
+  r <- abs(z) / sqrt(nrow(data))
+  cat(sprintf("\nTaille d'effet approximative (r) = %.3f\n", r))
+  cat("Interprétation de r : |r| < 0.3 → petit ; 0.3-0.5 → modéré ; > 0.5 → grand\n")
+}
+```

@@ -1,0 +1,812 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Projet Statistique : Analyse des Données Médicales},
+  pdfauthor={Ton Nom},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Projet Statistique : Analyse des Données Médicales}
+\author{Ton Nom}
+\date{13/12/2025}
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\section{1. Introduction}\label{introduction}
+
+\subsection{1.1 Contexte}\label{contexte}
+
+Ce projet vise à étudier un jeu de données médicales contenant des
+informations sur les patients : âge, sexe, poids, tension artérielle,
+cholestérol, groupe de traitement, durée de suivi et score de symptômes.
+
+\subsection{1.2 Problématique}\label{probluxe9matique}
+
+\begin{quote}
+Les caractéristiques cliniques (âge, poids, tension, cholestérol) et le
+traitement influencent-ils significativement l'état des patients (score
+de symptômes) ?
+\end{quote}
+
+\subsection{1.3 Objectifs}\label{objectifs}
+
+\begin{itemize}
+\tightlist
+\item
+  Décrire les variables (analyse univariée)
+\item
+  Étudier les relations entre variables (analyse bivariée)
+\item
+  Construire un modèle explicatif (analyse multivariée)
+\item
+  Tester les hypothèses statistiques
+\end{itemize}
+
+\section{2. Préparation des
+données}\label{pruxe9paration-des-donnuxe9es}
+
+\subsection{2.1 Chargement des packages}\label{chargement-des-packages}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Installer les packages si nécessaires :}
+\CommentTok{\# install.packages(c("tidyverse", "skimr", "GGally", "psych", "broom"))}
+
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\FunctionTok{library}\NormalTok{(skimr)}
+\FunctionTok{library}\NormalTok{(GGally)}
+\FunctionTok{library}\NormalTok{(psych)}
+\FunctionTok{library}\NormalTok{(broom)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{2.2 Importation du jeu de
+données}\label{importation-du-jeu-de-donnuxe9es}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\FunctionTok{file.choose}\NormalTok{(),}
+                 \AttributeTok{sep =} \StringTok{";"}\NormalTok{,}
+                 \AttributeTok{header =} \ConstantTok{TRUE}\NormalTok{,}
+                 \AttributeTok{stringsAsFactors =} \ConstantTok{FALSE}\NormalTok{,}
+                 \AttributeTok{na.strings =} \FunctionTok{c}\NormalTok{(}\StringTok{""}\NormalTok{, }\StringTok{"NA"}\NormalTok{, }\StringTok{"NaN"}\NormalTok{, }\StringTok{"NULL"}\NormalTok{, }\StringTok{"?"}\NormalTok{))}
+
+\CommentTok{\# 👀 Aperçu rapide du jeu de données}
+\FunctionTok{head}\NormalTok{(data)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   ID Age Sexe Poids Tension Cholesterol Groupe_Traitement Suivi_Jours
+## 1  1  63    F  48.0     130         188                 B          20
+## 2  2  76    F  83.4     136         193                 B          20
+## 3  3  53    M  68.4     128         200                 B          27
+## 4  4  39    F  55.7     143         207                 B          21
+## 5  5  67    F  63.8     150         171                 B          27
+## 6  6  32    F  49.0     110          NA                 B          26
+##   Symptom_Score
+## 1             6
+## 2             8
+## 3             1
+## 4            10
+## 5             4
+## 6             1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{str}\NormalTok{(data)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 'data.frame':    100 obs. of  9 variables:
+##  $ ID               : int  1 2 3 4 5 6 7 8 9 10 ...
+##  $ Age              : int  63 76 53 39 67 32 45 63 43 47 ...
+##  $ Sexe             : chr  "F" "F" "M" "F" ...
+##  $ Poids            : num  48 83.4 68.4 55.7 63.8 49 64.8 81.3 65.1 57.1 ...
+##  $ Tension          : num  130 136 128 143 150 110 143 136 130 106 ...
+##  $ Cholesterol      : num  188 193 200 207 171 NA 181 249 NA 242 ...
+##  $ Groupe_Traitement: chr  "B" "B" "B" "B" ...
+##  $ Suivi_Jours      : int  20 20 27 21 27 26 29 29 21 25 ...
+##  $ Symptom_Score    : int  6 8 1 10 4 1 8 1 3 4 ...
+\end{verbatim}
+
+\subsection{2.3 Nettoyage des données}\label{nettoyage-des-donnuxe9es}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data }\OtherTok{\textless{}{-}}\NormalTok{ data }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{rename}\NormalTok{(}
+    \AttributeTok{ID =}\NormalTok{ ID,}
+    \AttributeTok{Age =}\NormalTok{ Age,}
+    \AttributeTok{Sexe =}\NormalTok{ Sexe,}
+    \AttributeTok{Poids =}\NormalTok{ Poids,}
+    \AttributeTok{Tension =}\NormalTok{ Tension,}
+    \AttributeTok{Cholesterol =}\NormalTok{ Cholesterol,}
+    \AttributeTok{Groupe\_Traitement =}\NormalTok{ Groupe\_Traitement,}
+    \AttributeTok{Suivi\_Jours =}\NormalTok{ Suivi\_Jours,}
+    \AttributeTok{Symptom\_Score =}\NormalTok{ Symptom\_Score}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{Sexe =} \FunctionTok{as.factor}\NormalTok{(Sexe),}
+    \AttributeTok{Groupe\_Traitement =} \FunctionTok{as.factor}\NormalTok{(Groupe\_Traitement)}
+\NormalTok{  )}
+
+\CommentTok{\# Suppression des doublons}
+\NormalTok{data }\OtherTok{\textless{}{-}} \FunctionTok{distinct}\NormalTok{(data)}
+
+\CommentTok{\# Résumé rapide}
+\FunctionTok{skim}\NormalTok{(data)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}ll@{}}
+\caption{Data summary}\tabularnewline
+\toprule\noalign{}
+\endfirsthead
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Name & data \\
+Number of rows & 100 \\
+Number of columns & 9 \\
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ & \\
+Column type frequency: & \\
+factor & 2 \\
+numeric & 7 \\
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ & \\
+Group variables & None \\
+\end{longtable}
+
+\textbf{Variable type: factor}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.2500}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1389}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1944}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1111}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1250}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1806}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+skim\_variable
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+n\_missing
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+complete\_rate
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+ordered
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+n\_unique
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+top\_counts
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Sexe & 0 & 1 & FALSE & 2 & M: 62, F: 38 \\
+Groupe\_Traitement & 0 & 1 & FALSE & 2 & A: 58, B: 42 \\
+\end{longtable}
+
+\textbf{Variable type: numeric}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 20\tabcolsep) * \real{0.1573}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 20\tabcolsep) * \real{0.1124}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 20\tabcolsep) * \real{0.1573}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 20\tabcolsep) * \real{0.0787}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 20\tabcolsep) * \real{0.0674}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 20\tabcolsep) * \real{0.0674}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 20\tabcolsep) * \real{0.0787}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 20\tabcolsep) * \real{0.0674}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 20\tabcolsep) * \real{0.0787}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 20\tabcolsep) * \real{0.0674}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 20\tabcolsep) * \real{0.0674}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+skim\_variable
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+n\_missing
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+complete\_rate
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+mean
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+sd
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+p0
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+p25
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+p50
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+p75
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+p100
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+hist
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+ID & 0 & 1.0 & 50.50 & 29.01 & 1.0 & 25.75 & 50.5 & 75.25 & 100.0 &
+▇▇▇▇▇ \\
+Age & 0 & 1.0 & 52.05 & 16.26 & 26.0 & 38.75 & 50.0 & 67.25 & 79.0 &
+▇▇▅▇▇ \\
+Poids & 10 & 0.9 & 69.38 & 15.59 & 26.8 & 59.93 & 68.9 & 80.65 & 104.1 &
+▁▃▇▆▂ \\
+Tension & 10 & 0.9 & 132.08 & 18.63 & 100.0 & 120.00 & 130.5 & 143.00 &
+185.0 & ▅▇▇▂▁ \\
+Cholesterol & 10 & 0.9 & 207.59 & 28.55 & 126.0 & 188.50 & 207.5 &
+229.00 & 264.0 & ▁▃▇▇▅ \\
+Suivi\_Jours & 0 & 1.0 & 24.83 & 3.34 & 20.0 & 22.00 & 25.0 & 28.00 &
+30.0 & ▇▃▃▃▅ \\
+Symptom\_Score & 0 & 1.0 & 5.78 & 2.79 & 1.0 & 3.00 & 6.0 & 8.00 & 10.0
+& ▆▇▇▇▇ \\
+\end{longtable}
+
+\subsection{2.4 Gestion des valeurs
+manquantes}\label{gestion-des-valeurs-manquantes}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{colSums}\NormalTok{(}\FunctionTok{is.na}\NormalTok{(data))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                ID               Age              Sexe             Poids 
+##                 0                 0                 0                10 
+##           Tension       Cholesterol Groupe_Traitement       Suivi_Jours 
+##                10                10                 0                 0 
+##     Symptom_Score 
+##                 0
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{data }\OtherTok{\textless{}{-}} \FunctionTok{na.omit}\NormalTok{(data)}
+\FunctionTok{nrow}\NormalTok{(data)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 72
+\end{verbatim}
+
+\section{3. Analyse univariée}\label{analyse-univariuxe9e}
+
+\subsection{3.1 Variables quantitatives}\label{variables-quantitatives}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{quant\_vars }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\StringTok{"Age"}\NormalTok{, }\StringTok{"Poids"}\NormalTok{, }\StringTok{"Tension"}\NormalTok{, }\StringTok{"Cholesterol"}\NormalTok{, }\StringTok{"Suivi\_Jours"}\NormalTok{, }\StringTok{"Symptom\_Score"}\NormalTok{)}
+
+\NormalTok{data }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{select}\NormalTok{(}\FunctionTok{all\_of}\NormalTok{(quant\_vars)) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{summary}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##       Age            Poids          Tension       Cholesterol     Suivi_Jours
+##  Min.   :26.00   Min.   :26.80   Min.   :100.0   Min.   :126.0   Min.   :20  
+##  1st Qu.:38.00   1st Qu.:58.45   1st Qu.:118.5   1st Qu.:192.8   1st Qu.:22  
+##  Median :49.50   Median :69.30   Median :128.0   Median :211.0   Median :25  
+##  Mean   :51.97   Mean   :68.82   Mean   :130.6   Mean   :209.6   Mean   :25  
+##  3rd Qu.:67.25   3rd Qu.:80.35   3rd Qu.:140.0   3rd Qu.:230.2   3rd Qu.:28  
+##  Max.   :79.00   Max.   :99.00   Max.   :185.0   Max.   :264.0   Max.   :30  
+##  Symptom_Score   
+##  Min.   : 1.000  
+##  1st Qu.: 4.000  
+##  Median : 6.000  
+##  Mean   : 5.931  
+##  3rd Qu.: 8.000  
+##  Max.   :10.000
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Histogrammes}
+\ControlFlowTok{for}\NormalTok{ (v }\ControlFlowTok{in}\NormalTok{ quant\_vars) \{}
+  \FunctionTok{print}\NormalTok{(}
+    \FunctionTok{ggplot}\NormalTok{(data, }\FunctionTok{aes\_string}\NormalTok{(}\AttributeTok{x =}\NormalTok{ v)) }\SpecialCharTok{+}
+      \FunctionTok{geom\_histogram}\NormalTok{(}\AttributeTok{bins =} \DecValTok{20}\NormalTok{, }\AttributeTok{fill =} \StringTok{"steelblue"}\NormalTok{, }\AttributeTok{color =} \StringTok{"white"}\NormalTok{) }\SpecialCharTok{+}
+      \FunctionTok{geom\_density}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.4}\NormalTok{, }\AttributeTok{color =} \StringTok{"red"}\NormalTok{) }\SpecialCharTok{+}
+      \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \FunctionTok{paste}\NormalTok{(}\StringTok{"Distribution de"}\NormalTok{, v))}
+\NormalTok{  )}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{Projet_Statistique_files/figure-latex/univariate-num-1.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{Projet_Statistique_files/figure-latex/univariate-num-2.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{Projet_Statistique_files/figure-latex/univariate-num-3.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{Projet_Statistique_files/figure-latex/univariate-num-4.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{Projet_Statistique_files/figure-latex/univariate-num-5.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{Projet_Statistique_files/figure-latex/univariate-num-6.pdf}}
+
+\subsubsection{Test de normalité
+(Shapiro-Wilk)}\label{test-de-normalituxe9-shapiro-wilk}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ControlFlowTok{for}\NormalTok{ (v }\ControlFlowTok{in}\NormalTok{ quant\_vars) \{}
+  \FunctionTok{cat}\NormalTok{(}\StringTok{"Variable :"}\NormalTok{, v, }\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\NormalTok{  x }\OtherTok{\textless{}{-}}\NormalTok{ data[[v]]}
+  \ControlFlowTok{if}\NormalTok{ (}\FunctionTok{length}\NormalTok{(x) }\SpecialCharTok{\textgreater{}} \DecValTok{5000}\NormalTok{) x }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(x, }\DecValTok{5000}\NormalTok{)}
+  \FunctionTok{print}\NormalTok{(}\FunctionTok{shapiro.test}\NormalTok{(x))}
+  \FunctionTok{cat}\NormalTok{(}\StringTok{"}\SpecialCharTok{\textbackslash{}n}\StringTok{{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}}\SpecialCharTok{\textbackslash{}n}\StringTok{"}\NormalTok{)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Variable : Age 
+## 
+##  Shapiro-Wilk normality test
+## 
+## data:  x
+## W = 0.93446, p-value = 0.001008
+## 
+## 
+## ---------------------------------
+## Variable : Poids 
+## 
+##  Shapiro-Wilk normality test
+## 
+## data:  x
+## W = 0.97775, p-value = 0.2312
+## 
+## 
+## ---------------------------------
+## Variable : Tension 
+## 
+##  Shapiro-Wilk normality test
+## 
+## data:  x
+## W = 0.95439, p-value = 0.01077
+## 
+## 
+## ---------------------------------
+## Variable : Cholesterol 
+## 
+##  Shapiro-Wilk normality test
+## 
+## data:  x
+## W = 0.9828, p-value = 0.4311
+## 
+## 
+## ---------------------------------
+## Variable : Suivi_Jours 
+## 
+##  Shapiro-Wilk normality test
+## 
+## data:  x
+## W = 0.91295, p-value = 0.0001052
+## 
+## 
+## ---------------------------------
+## Variable : Symptom_Score 
+## 
+##  Shapiro-Wilk normality test
+## 
+## data:  x
+## W = 0.94725, p-value = 0.00446
+## 
+## 
+## ---------------------------------
+\end{verbatim}
+
+\subsection{3.2 Variables qualitatives}\label{variables-qualitatives}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{table}\NormalTok{(data}\SpecialCharTok{$}\NormalTok{Sexe)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  F  M 
+## 30 42
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{table}\NormalTok{(data}\SpecialCharTok{$}\NormalTok{Groupe\_Traitement)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  A  B 
+## 40 32
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(data, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Sexe)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{fill =} \StringTok{"\#3498db"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Répartition par sexe"}\NormalTok{, }\AttributeTok{x =} \StringTok{"Sexe"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Effectif"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{Projet_Statistique_files/figure-latex/univariate-cat-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(data, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Groupe\_Traitement)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{fill =} \StringTok{"\#2ecc71"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Répartition par groupe de traitement"}\NormalTok{, }\AttributeTok{x =} \StringTok{"Groupe"}\NormalTok{, }\AttributeTok{y =} \StringTok{"Effectif"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{Projet_Statistique_files/figure-latex/univariate-cat-2.pdf}}
+
+\section{4. Analyse bivariée}\label{analyse-bivariuxe9e}
+
+\subsection{4.1 Corrélations entre variables
+quantitatives}\label{corruxe9lations-entre-variables-quantitatives}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{cor\_matrix }\OtherTok{\textless{}{-}} \FunctionTok{cor}\NormalTok{(data[, quant\_vars])}
+\NormalTok{cor\_matrix}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                        Age       Poids      Tension Cholesterol Suivi_Jours
+## Age            1.000000000  0.07581081 -0.007322607 -0.06885022 -0.06815034
+## Poids          0.075810814  1.00000000 -0.110141073  0.06623760  0.05151972
+## Tension       -0.007322607 -0.11014107  1.000000000  0.03471370 -0.03240724
+## Cholesterol   -0.068850218  0.06623760  0.034713702  1.00000000  0.02892325
+## Suivi_Jours   -0.068150342  0.05151972 -0.032407243  0.02892325  1.00000000
+## Symptom_Score  0.168343356  0.09557221 -0.119349464 -0.03796789 -0.11738130
+##               Symptom_Score
+## Age              0.16834336
+## Poids            0.09557221
+## Tension         -0.11934946
+## Cholesterol     -0.03796789
+## Suivi_Jours     -0.11738130
+## Symptom_Score    1.00000000
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{GGally}\SpecialCharTok{::}\FunctionTok{ggcorr}\NormalTok{(data[, quant\_vars], }\AttributeTok{label =} \ConstantTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{Projet_Statistique_files/figure-latex/correlation-1.pdf}}
+
+\subsubsection{Exemple : Corrélation entre âge et score de
+symptômes}\label{exemple-corruxe9lation-entre-uxe2ge-et-score-de-symptuxf4mes}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cor.test}\NormalTok{(data}\SpecialCharTok{$}\NormalTok{Age, data}\SpecialCharTok{$}\NormalTok{Symptom\_Score)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Pearson's product-moment correlation
+## 
+## data:  data$Age and data$Symptom_Score
+## t = 1.4289, df = 70, p-value = 0.1575
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  -0.0658951  0.3849971
+## sample estimates:
+##       cor 
+## 0.1683434
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(data, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Age, }\AttributeTok{y =}\NormalTok{ Symptom\_Score)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{geom\_smooth}\NormalTok{(}\AttributeTok{method =} \StringTok{"lm"}\NormalTok{, }\AttributeTok{color =} \StringTok{"red"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Âge vs Score de symptômes"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{Projet_Statistique_files/figure-latex/cor-age-1.pdf}}
+
+\subsection{4.2 Comparaison de moyennes (score selon le
+traitement)}\label{comparaison-de-moyennes-score-selon-le-traitement}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ggplot}\NormalTok{(data, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Groupe\_Traitement, }\AttributeTok{y =}\NormalTok{ Symptom\_Score, }\AttributeTok{fill =}\NormalTok{ Groupe\_Traitement)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_boxplot}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Score selon le groupe de traitement"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{Projet_Statistique_files/figure-latex/anova-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Test ANOVA}
+\NormalTok{anova\_test }\OtherTok{\textless{}{-}} \FunctionTok{aov}\NormalTok{(Symptom\_Score }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Groupe\_Traitement, }\AttributeTok{data =}\NormalTok{ data)}
+\FunctionTok{summary}\NormalTok{(anova\_test)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                   Df Sum Sq Mean Sq F value Pr(>F)
+## Groupe_Traitement  1    2.6   2.584   0.366  0.547
+## Residuals         70  494.1   7.058
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Test non paramétrique}
+\FunctionTok{kruskal.test}\NormalTok{(Symptom\_Score }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Groupe\_Traitement, }\AttributeTok{data =}\NormalTok{ data)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Kruskal-Wallis rank sum test
+## 
+## data:  Symptom_Score by Groupe_Traitement
+## Kruskal-Wallis chi-squared = 0.28129, df = 1, p-value = 0.5959
+\end{verbatim}
+
+\subsection{4.3 Variables qualitatives (Sexe vs Groupe de
+traitement)}\label{variables-qualitatives-sexe-vs-groupe-de-traitement}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{tab }\OtherTok{\textless{}{-}} \FunctionTok{table}\NormalTok{(data}\SpecialCharTok{$}\NormalTok{Sexe, data}\SpecialCharTok{$}\NormalTok{Groupe\_Traitement)}
+\NormalTok{tab}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    
+##      A  B
+##   F 14 16
+##   M 26 16
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{chisq.test}\NormalTok{(tab)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Pearson's Chi-squared test with Yates' continuity correction
+## 
+## data:  tab
+## X-squared = 1.0864, df = 1, p-value = 0.2973
+\end{verbatim}
+
+\section{5. Analyse multivariée}\label{analyse-multivariuxe9e}
+
+\subsection{5.1 Régression linéaire
+multiple}\label{ruxe9gression-linuxe9aire-multiple}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{model }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(Symptom\_Score }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Age }\SpecialCharTok{+}\NormalTok{ Sexe }\SpecialCharTok{+}\NormalTok{ Poids }\SpecialCharTok{+}\NormalTok{ Tension }\SpecialCharTok{+}
+\NormalTok{              Cholesterol }\SpecialCharTok{+}\NormalTok{ Groupe\_Traitement }\SpecialCharTok{+}\NormalTok{ Suivi\_Jours, }\AttributeTok{data =}\NormalTok{ data)}
+
+\FunctionTok{summary}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+## Call:
+## lm(formula = Symptom_Score ~ Age + Sexe + Poids + Tension + Cholesterol + 
+##     Groupe_Traitement + Suivi_Jours, data = data)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -5.4514 -2.0247  0.2219  2.0510  4.5342 
+## 
+## Coefficients:
+##                     Estimate Std. Error t value Pr(>|t|)  
+## (Intercept)         9.207592   4.656931   1.977   0.0523 .
+## Age                 0.022730   0.019950   1.139   0.2588  
+## SexeM              -0.319888   0.727147  -0.440   0.6615  
+## Poids               0.009679   0.022673   0.427   0.6709  
+## Tension            -0.017937   0.018220  -0.984   0.3286  
+## Cholesterol        -0.001958   0.011546  -0.170   0.8659  
+## Groupe_TraitementB -0.352014   0.668319  -0.527   0.6002  
+## Suivi_Jours        -0.081172   0.095565  -0.849   0.3988  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 2.691 on 64 degrees of freedom
+## Multiple R-squared:  0.06689,    Adjusted R-squared:  -0.03517 
+## F-statistic: 0.6554 on 7 and 64 DF,  p-value: 0.7085
+\end{verbatim}
+
+\subsubsection{Interprétation
+simplifiée}\label{interpruxe9tation-simplifiuxe9e}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{broom}\SpecialCharTok{::}\FunctionTok{tidy}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 8 x 5
+##   term               estimate std.error statistic p.value
+##   <chr>                 <dbl>     <dbl>     <dbl>   <dbl>
+## 1 (Intercept)         9.21       4.66       1.98   0.0523
+## 2 Age                 0.0227     0.0200     1.14   0.259 
+## 3 SexeM              -0.320      0.727     -0.440  0.661 
+## 4 Poids               0.00968    0.0227     0.427  0.671 
+## 5 Tension            -0.0179     0.0182    -0.984  0.329 
+## 6 Cholesterol        -0.00196    0.0115    -0.170  0.866 
+## 7 Groupe_TraitementB -0.352      0.668     -0.527  0.600 
+## 8 Suivi_Jours        -0.0812     0.0956    -0.849  0.399
+\end{verbatim}
+
+\subsection{5.2 Vérification des hypothèses du
+modèle}\label{vuxe9rification-des-hypothuxe8ses-du-moduxe8le}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{))}
+\FunctionTok{plot}\NormalTok{(model)}
+\end{Highlighting}
+\end{Shaded}
+
+\pandocbounded{\includegraphics[keepaspectratio]{Projet_Statistique_files/figure-latex/diagnostic-1.pdf}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\section{6. Limites et perspectives}\label{limites-et-perspectives}
+
+\begin{itemize}
+\tightlist
+\item
+  Taille d'échantillon limitée
+\item
+  Variables non observées (régime, antécédents\ldots)
+\item
+  Données manquantes ou non normalisées
+\item
+  Perspectives : ajout de variables, modèles non linéaires, tests
+  robustes
+\end{itemize}
+
+\section{7. Conclusion}\label{conclusion}
+
+Cette étude montre les relations entre les caractéristiques des patients
+et leur état de santé. Les analyses descriptives, corrélationnelles et
+de régression permettent de formuler et vérifier des hypothèses
+statistiques fiables.
+
+\end{document}

@@ -36,7 +36,7 @@ Ce projet vise à étudier un jeu de données médicales contenant des informati
 
 ```{r packages}
 # Installer les packages si nécessaires :
-# install.packages(c("tidyverse", "skimr", "GGally", "psych", "broom"))
+install.packages(c("tidyverse", "skimr", "GGally", "psych", "broom"))
 
 library(tidyverse)
 library(skimr)
@@ -359,6 +359,35 @@ Du fait de la non-normalité de la plupart des variables, le test de Spearman a 
 
 **Conclusion :**
 Aucune variable quantitative n’est linéairement et significativement associée au score de symptômes en analyse bivariée. Des effets combinés pourraient être explorés en analyse multivariée.
+
+# 5. Régressions linéaires et diagnostics des modèles
+
+## 5.1 Formulation des hypothèses (H1, H2, H3)
+
+- H1 : Les variables cliniques de base (âge, poids, tension, cholestérol) sont associées au score de symptômes.
+- H2 : L’ajout de la durée de suivi et du groupe de traitement améliore significativement l’explication du score de symptômes.
+- H3 : Un modèle réduit ne gardant que les prédicteurs significatifs offre un meilleur compromis (AIC plus faible, résidus plus satisfaisants).
+# Modèle H1 : seulement variables cliniques
+mod_H1 <- lm(Symptom_Score ~ Age + Poids + Tension + Cholesterol,
+             data = data)
+cat("=== Modèle H1 : Variables cliniques de base ===\n")
+summary(mod_H1)
+
+# Modèle H2 : variables cliniques + suivi + traitement
+mod_H2 <- lm(Symptom_Score ~ Age + Poids + Tension + Cholesterol +
+                           Suivi_Jours + Groupe_Traitement,
+             data = data)
+cat("\n\n=== Modèle H2 : Clinique + Suivi + Traitement ===\n")
+summary(mod_H2)
+
+# Comparaison AIC H1 vs H2
+cat("\n\n=== Comparaison des modèles (AIC) H1 vs H2 ===\n")
+AIC(mod_H1, mod_H2)
+
+
+
+
+
 
 
 

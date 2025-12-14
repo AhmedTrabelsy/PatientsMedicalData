@@ -193,21 +193,6 @@ chisq.test(tab)
 
 ### Interprétation simplifiée
 
-
-
-
-# 6. Limites et perspectives
-
-- Taille d’échantillon limitée
-- Variables non observées (régime, antécédents…)
-- Données manquantes ou non normalisées
-- Perspectives : ajout de variables, modèles non linéaires, tests robustes
-
-# 7. Conclusion
-
-Cette étude montre les relations entre les caractéristiques des patients et leur état de santé.
-Les analyses descriptives, corrélationnelles et de régression permettent de formuler et vérifier des hypothèses statistiques fiables.
-
 ## 4.4 Comparaison du Symptom_Score entre Hommes et Femmes
 
 ### Visualisation : Boxplot avec points individuels
@@ -262,3 +247,131 @@ if(shapiro_H$p.value > 0.05 & shapiro_F$p.value > 0.05) {
   cat("Interprétation de r : |r| < 0.3 → petit ; 0.3-0.5 → modéré ; > 0.5 → grand\n")
 }
 ```
+
+
+## 4.5 Analyse détaillée des corrélations (Pearson ou Spearman selon normalité)
+
+D'après les tests de normalité (section 3.1), la plupart des variables quantitatives ne suivent pas une distribution normale (p-values < 0.05).  
+nous utilisons :  
+- le test de **Pearson**  lorsque les deux variables sont normalement distribuées,  
+- le test de **Spearman** dans les autres cas (plus robuste pour données non normales ou ordinales).
+
+### Matrice visuelle globale
+```{r corr-global-visu, fig.width=12, fig.height=10}
+GGally::ggpairs(data[, quant_vars], 
+                title = "Matrice des distributions et corrélations (Pearson en haut)",
+                upper = list(continuous = wrap("cor", method = "pearson", size = 5)),
+                lower = list(continuous = wrap("smooth", alpha = 0.4, size = 0.5)))
+```
+# Fonction pour choisir automatiquement le test
+
+```{r}
+# Fonction pour choisir automatiquement le test
+choisir_test_cor <- function(var1, var2, donnees) {
+  p1 <- shapiro.test(donnees[[var1]])$p.value
+  p2 <- shapiro.test(donnees[[var2]])$p.value
+  
+  if (p1 > 0.05 & p2 > 0.05) {
+    res <- cor.test(donnees[[var1]], donnees[[var2]], method = "pearson")
+    methode <- "Pearson"
+  } else {
+    res <- cor.test(donnees[[var1]], donnees[[var2]], method = "spearman")
+    methode <- "Spearman"
+  }
+  
+  coef <- round(res$estimate, 3)
+  pval <- round(res$p.value, 4)
+  force <- ifelse(abs(coef) < 0.3, "Faible",
+                  ifelse(abs(coef) < 0.5, "Modérée", "Forte"))
+  significatif <- ifelse(pval < 0.05, "Oui", "Non")
+  
+  data.frame(
+    Paire = paste(var1, "vs", var2),
+    Méthode = methode,
+    Coefficient = coef,
+    `P-value` = pval,
+    Force = force,
+    Significatif = significatif,
+    stringsAsFactors = FALSE
+  )
+}
+
+# Toutes les paires uniques
+paires <- combn(quant_vars, 2, simplify = FALSE)
+
+# Calcul des corrélations
+tableau_correlations <- do.call(rbind, lapply(paires, function(p) {
+  choisir_test_cor(p[1], p[2], data)
+}))
+
+# Tri par force absolue
+tableau_correlations <- tableau_correlations %>%
+  arrange(desc(abs(Coefficient)))
+
+# Affichage
+knitr::kable(tableau_correlations, 
+             caption = "Corrélations entre variables quantitatives avec choix du test selon normalité")
+
+```
+# Filtrer les corrélations significatives
+
+```{r}
+# Filtrer les corrélations significatives
+cor_signif <- tableau_correlations[tableau_correlations$Significatif == "Oui", ]
+
+if (nrow(cor_signif) > 0) {
+  for (i in 1:nrow(cor_signif)) {
+    vars <- strsplit(cor_signif$Paire[i], " vs ")[[1]]
+    x_var <- vars[1]
+    y_var <- vars[2]
+    
+    
+    print(
+      ggplot(data, aes_string(x = x_var, y = y_var)) +
+        geom_point(alpha = 0.7, color = "steelblue") +
+        geom_smooth(method = "lm", color = "red", se = FALSE) +
+        labs(
+          title = paste("Corrélation :", cor_signif$Paire[i]),
+          subtitle = paste(
+            "Méthode :", cor_signif$Méthode[i],
+            "| Coefficient =", cor_signif$Coefficient[i],
+            "| P-value =", cor_signif$`P-value`[i],
+            "| Force :", cor_signif$Force[i]
+          )
+        ) +
+        theme_minimal(base_size = 12)
+    )
+  }
+} else {
+  cat("Aucune corrélation statistiquement significative (p < 0.05) n'a été détectée.")
+}
+```
+
+### Interprétation des résultats
+
+Les corrélations entre les variables quantitatives sont toutes très faibles **(|ρ| ou |r| < 0.2) **et aucune n'est statistiquement significative (p > 0.05).
+
+La relation la plus marquée concerne **l’âge et le score de symptômes (ρ = 0.168, p = 0.159) :** tendance faiblement positive, non significative.
+
+Les autres liens notables sont encore plus faibles **(ex. : poids vs score ρ = 0.135 ; suivi vs score ρ = -0.117).**
+
+Du fait de la non-normalité de la plupart des variables, le test de Spearman a été utilisé systématiquement, sauf pour la paire Poids vs Cholestérol (test de Pearson).
+
+**Conclusion :**
+Aucune variable quantitative n’est linéairement et significativement associée au score de symptômes en analyse bivariée. Des effets combinés pourraient être explorés en analyse multivariée.
+
+
+
+
+# 6. Limites et perspectives
+
+- Taille d’échantillon limitée
+- Variables non observées (régime, antécédents…)
+- Données manquantes ou non normalisées
+- Perspectives : ajout de variables, modèles non linéaires, tests robustes
+
+# 7. Conclusion
+
+Cette étude montre les relations entre les caractéristiques des patients et leur état de santé.
+Les analyses descriptives, corrélationnelles et de régression permettent de formuler et vérifier des hypothèses statistiques fiables.
+

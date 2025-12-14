@@ -36,7 +36,7 @@ Ce projet vise à étudier un jeu de données médicales contenant des informati
 
 ```{r packages}
 # Installer les packages si nécessaires :
-install.packages(c("tidyverse", "skimr", "GGally", "psych", "broom"))
+# install.packages(c("tidyverse", "skimr", "GGally", "psych", "broom"))
 
 library(tidyverse)
 library(skimr)
@@ -193,6 +193,21 @@ chisq.test(tab)
 
 ### Interprétation simplifiée
 
+
+
+
+# 6. Limites et perspectives
+
+- Taille d’échantillon limitée
+- Variables non observées (régime, antécédents…)
+- Données manquantes ou non normalisées
+- Perspectives : ajout de variables, modèles non linéaires, tests robustes
+
+# 7. Conclusion
+
+Cette étude montre les relations entre les caractéristiques des patients et leur état de santé.
+Les analyses descriptives, corrélationnelles et de régression permettent de formuler et vérifier des hypothèses statistiques fiables.
+
 ## 4.4 Comparaison du Symptom_Score entre Hommes et Femmes
 
 ### Visualisation : Boxplot avec points individuels
@@ -248,159 +263,68 @@ if(shapiro_H$p.value > 0.05 & shapiro_F$p.value > 0.05) {
 }
 ```
 
+# ANALYSES AVANCÉES 
 
-## 4.5 Analyse détaillée des corrélations (Pearson ou Spearman selon normalité)
-
-D'après les tests de normalité (section 3.1), la plupart des variables quantitatives ne suivent pas une distribution normale (p-values < 0.05).  
-nous utilisons :  
-- le test de **Pearson**  lorsque les deux variables sont normalement distribuées,  
-- le test de **Spearman** dans les autres cas (plus robuste pour données non normales ou ordinales).
-
-### Matrice visuelle globale
-```{r corr-global-visu, fig.width=12, fig.height=10}
-GGally::ggpairs(data[, quant_vars], 
-                title = "Matrice des distributions et corrélations (Pearson en haut)",
-                upper = list(continuous = wrap("cor", method = "pearson", size = 5)),
-                lower = list(continuous = wrap("smooth", alpha = 0.4, size = 0.5)))
-```
-# Fonction pour choisir automatiquement le test
-
+# A. Effet de la tranche d'âge sur le Symptom_Score (Kruskal-Wallis car non normal)
 ```{r}
-# Fonction pour choisir automatiquement le test
-choisir_test_cor <- function(var1, var2, donnees) {
-  p1 <- shapiro.test(donnees[[var1]])$p.value
-  p2 <- shapiro.test(donnees[[var2]])$p.value
-  
-  if (p1 > 0.05 & p2 > 0.05) {
-    res <- cor.test(donnees[[var1]], donnees[[var2]], method = "pearson")
-    methode <- "Pearson"
-  } else {
-    res <- cor.test(donnees[[var1]], donnees[[var2]], method = "spearman")
-    methode <- "Spearman"
-  }
-  
-  coef <- round(res$estimate, 3)
-  pval <- round(res$p.value, 4)
-  force <- ifelse(abs(coef) < 0.3, "Faible",
-                  ifelse(abs(coef) < 0.5, "Modérée", "Forte"))
-  significatif <- ifelse(pval < 0.05, "Oui", "Non")
-  
-  data.frame(
-    Paire = paste(var1, "vs", var2),
-    Méthode = methode,
-    Coefficient = coef,
-    `P-value` = pval,
-    Force = force,
-    Significatif = significatif,
-    stringsAsFactors = FALSE
-  )
-}
-
-# Toutes les paires uniques
-paires <- combn(quant_vars, 2, simplify = FALSE)
-
-# Calcul des corrélations
-tableau_correlations <- do.call(rbind, lapply(paires, function(p) {
-  choisir_test_cor(p[1], p[2], data)
-}))
-
-# Tri par force absolue
-tableau_correlations <- tableau_correlations %>%
-  arrange(desc(abs(Coefficient)))
-
-# Affichage
-knitr::kable(tableau_correlations, 
-             caption = "Corrélations entre variables quantitatives avec choix du test selon normalité")
-
+cat("\n>>> A. Effet de l'âge groupé sur le Symptom_Score (Kruskal-Wallis)\n")
 ```
-# Filtrer les corrélations significatives
-
 ```{r}
-# Filtrer les corrélations significatives
-cor_signif <- tableau_correlations[tableau_correlations$Significatif == "Oui", ]
+data$age_groupe <- cut(data$Age, 
+                       breaks = c(0, 40, 60, 100), 
+                       labels = c("Jeune (<40 ans)", "Moyen (40-60 ans)", "Senior (>60 ans)"))
 
-if (nrow(cor_signif) > 0) {
-  for (i in 1:nrow(cor_signif)) {
-    vars <- strsplit(cor_signif$Paire[i], " vs ")[[1]]
-    x_var <- vars[1]
-    y_var <- vars[2]
-    
-    
-    print(
-      ggplot(data, aes_string(x = x_var, y = y_var)) +
-        geom_point(alpha = 0.7, color = "steelblue") +
-        geom_smooth(method = "lm", color = "red", se = FALSE) +
-        labs(
-          title = paste("Corrélation :", cor_signif$Paire[i]),
-          subtitle = paste(
-            "Méthode :", cor_signif$Méthode[i],
-            "| Coefficient =", cor_signif$Coefficient[i],
-            "| P-value =", cor_signif$`P-value`[i],
-            "| Force :", cor_signif$Force[i]
-          )
-        ) +
-        theme_minimal(base_size = 12)
-    )
-  }
-} else {
-  cat("Aucune corrélation statistiquement significative (p < 0.05) n'a été détectée.")
-}
+kruskal_age <- kruskal.test(Symptom_Score ~ age_groupe, data = data)
+print(kruskal_age)
 ```
 
-### Interprétation des résultats
+# B. Effet du niveau de cholestérol sur le Symptom_Score (Kruskal-Wallis)
+```{r}
+cat("\n>>> B. Effet du cholestérol groupé sur le Symptom_Score (Kruskal-Wallis)\n")
+```
+```{r}
+data$chol_groupe <- cut(data$Cholesterol, 
+                        breaks = c(0, 200, 1000), 
+                        labels = c("Normal (≤200)", "Élevé (>200)"))
 
-Les corrélations entre les variables quantitatives sont toutes très faibles **(|ρ| ou |r| < 0.2) **et aucune n'est statistiquement significative (p > 0.05).
+kruskal_chol <- kruskal.test(Symptom_Score ~ chol_groupe, data = data)
+print(kruskal_chol)
+```
 
-La relation la plus marquée concerne **l’âge et le score de symptômes (ρ = 0.168, p = 0.159) :** tendance faiblement positive, non significative.
+# C. Test d'interaction : Le groupe de traitement modère-t-il l'effet de l'âge ?
+```{r}
+cat("\n>>> C. TEST D'INTERACTION : Groupe_Traitement × Âge sur Symptom_Score\n")
+model_inter_age <- lm(Symptom_Score ~ Groupe_Traitement * Age, data = data)
+print(summary(model_inter_age)$coefficients)
+cat("(Regarder la ligne 'Groupe_TraitementB:Age'. Si p < 0.05, l'interaction existe : l'effet de l'âge diffère selon le traitement.)\n")
+```
+# Bonus : Interaction Sexe × Groupe_Traitement
+```{r}
+cat("\n>>> D. BONUS : Interaction Sexe × Groupe_Traitement sur Symptom_Score\n")
+```
+```{r}
+model_inter_sexe <- lm(Symptom_Score ~ Groupe_Traitement * Sexe, data = data)
+print(summary(model_inter_sexe)$coefficients)
+cat("(Regarder la ligne 'Groupe_TraitementB:SexeM'. Si p < 0.05, l'effet du traitement diffère selon le sexe.)\n")
+```
 
-Les autres liens notables sont encore plus faibles **(ex. : poids vs score ρ = 0.135 ; suivi vs score ρ = -0.117).**
+# Graphique Final Synthèse
+```{r}
+cat("\n>>> Graphique de synthèse final\n")
+```
+```{r}
+print(
+  ggplot(data, aes(x = Age, y = Symptom_Score, color = Groupe_Traitement)) +
+    geom_point(size = 3, alpha = 0.8) +
+    geom_smooth(method = "lm", se = TRUE, size = 1.2) +
+    facet_wrap(~ Sexe) +
+    labs(title = "Modèle Final : Âge et Score de Symptômes",
+         subtitle = "Lignes de régression par groupe de traitement, stratifié par sexe",
+         x = "Âge (ans)",
+         y = "Score de Symptômes",
+         color = "Groupe Traitement") +
+    theme_minimal(base_size = 14)
+)
 
-Du fait de la non-normalité de la plupart des variables, le test de Spearman a été utilisé systématiquement, sauf pour la paire Poids vs Cholestérol (test de Pearson).
-
-**Conclusion :**
-Aucune variable quantitative n’est linéairement et significativement associée au score de symptômes en analyse bivariée. Des effets combinés pourraient être explorés en analyse multivariée.
-
-# 5. Régressions linéaires et diagnostics des modèles
-
-## 5.1 Formulation des hypothèses (H1, H2, H3)
-
-- H1 : Les variables cliniques de base (âge, poids, tension, cholestérol) sont associées au score de symptômes.
-- H2 : L’ajout de la durée de suivi et du groupe de traitement améliore significativement l’explication du score de symptômes.
-- H3 : Un modèle réduit ne gardant que les prédicteurs significatifs offre un meilleur compromis (AIC plus faible, résidus plus satisfaisants).
-# Modèle H1 : seulement variables cliniques
-mod_H1 <- lm(Symptom_Score ~ Age + Poids + Tension + Cholesterol,
-             data = data)
-cat("=== Modèle H1 : Variables cliniques de base ===\n")
-summary(mod_H1)
-
-# Modèle H2 : variables cliniques + suivi + traitement
-mod_H2 <- lm(Symptom_Score ~ Age + Poids + Tension + Cholesterol +
-                           Suivi_Jours + Groupe_Traitement,
-             data = data)
-cat("\n\n=== Modèle H2 : Clinique + Suivi + Traitement ===\n")
-summary(mod_H2)
-
-# Comparaison AIC H1 vs H2
-cat("\n\n=== Comparaison des modèles (AIC) H1 vs H2 ===\n")
-AIC(mod_H1, mod_H2)
-
-
-
-
-
-
-
-
-
-# 6. Limites et perspectives
-
-- Taille d’échantillon limitée
-- Variables non observées (régime, antécédents…)
-- Données manquantes ou non normalisées
-- Perspectives : ajout de variables, modèles non linéaires, tests robustes
-
-# 7. Conclusion
-
-Cette étude montre les relations entre les caractéristiques des patients et leur état de santé.
-Les analyses descriptives, corrélationnelles et de régression permettent de formuler et vérifier des hypothèses statistiques fiables.
-
+cat("\n--- FIN DE L'ANALYSE EXPERTE ---\n")
+```

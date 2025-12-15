@@ -18,21 +18,21 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 # . Introduction
 
-##  Contexte
+## . Contexte
 Ce projet vise à étudier un jeu de données médicales contenant des informations sur les patients : âge, sexe, poids, tension artérielle, cholestérol, groupe de traitement, durée de suivi et score de symptômes.
 
-##  Problématique
+## . Problématique
 > Les caractéristiques cliniques (âge, poids, tension, cholestérol) et le traitement influencent-ils significativement l’état des patients (score de symptômes) ?
 
-##  Objectifs
+## . Objectifs
 - Décrire les variables (analyse univariée)
 - Étudier les relations entre variables (analyse bivariée)
 - Construire un modèle explicatif (analyse multivariée)
 - Tester les hypothèses statistiques
 
-#  Préparation des données
+# . Préparation des données
 
-##  Chargement des packages
+## . Chargement des packages
 
 ```{r packages}
 # Installer les packages si nécessaires :
@@ -46,7 +46,7 @@ library(broom)
 library(effsize)
 ```
 
-##  Importation du jeu de données
+## . Importation du jeu de données
 
 ```{r import}
 data <- read.csv(file.choose(),
@@ -60,7 +60,7 @@ head(data)
 str(data)
 ```
 
-##  Nettoyage des données
+## . Nettoyage des données
 
 ```{r cleaning}
 data <- data %>%
@@ -87,7 +87,7 @@ data <- distinct(data)
 skim(data)
 ```
 
-##  Gestion des valeurs manquantes
+## . Gestion des valeurs manquantes
 
 ```{r missing-values}
 colSums(is.na(data))
@@ -95,9 +95,9 @@ data <- na.omit(data)
 nrow(data)
 ```
 
-#  Analyse univariée
+#  . Analyse univariée
 
-##  Variables quantitatives
+## . Variables quantitatives
 
 ```{r univariate-num}
 quant_vars <- c("Age", "Poids", "Tension", "Cholesterol", "Suivi_Jours", "Symptom_Score")
@@ -117,7 +117,7 @@ for (v in quant_vars) {
 }
 ```
 
-### Test de normalité (Shapiro-Wilk)
+### . Test de normalité (Shapiro-Wilk)
 
 ```{r normality}
 for (v in quant_vars) {
@@ -129,7 +129,7 @@ for (v in quant_vars) {
 }
 ```
 
-##  Variables qualitatives
+## . Variables qualitatives
 
 ```{r univariate-cat}
 table(data$Sexe)
@@ -144,9 +144,9 @@ ggplot(data, aes(x = Groupe_Traitement)) +
   labs(title = "Répartition par groupe de traitement", x = "Groupe", y = "Effectif")
 ```
 
-#  Analyse bivariée
+# . Analyse bivariée
 
-##  Corrélations entre variables quantitatives
+## . Corrélations entre variables quantitatives
 
 ```{r correlation}
 cor_matrix <- cor(data[, quant_vars])
@@ -155,7 +155,7 @@ cor_matrix
 GGally::ggcorr(data[, quant_vars], label = TRUE)
 ```
 
-### Exemple : Corrélation entre âge et score de symptômes
+### . Exemple : Corrélation entre âge et score de symptômes
 
 ```{r cor-age}
 cor.test(data$Age, data$Symptom_Score)
@@ -165,7 +165,7 @@ ggplot(data, aes(x = Age, y = Symptom_Score)) +
   labs(title = "Âge vs Score de symptômes")
 ```
 
-##  Comparaison de moyennes (score selon le traitement)
+## . Comparaison de moyennes (score selon le traitement)
 
 ```{r anova}
 ggplot(data, aes(x = Groupe_Traitement, y = Symptom_Score, fill = Groupe_Traitement)) +
@@ -180,14 +180,14 @@ summary(anova_test)
 kruskal.test(Symptom_Score ~ Groupe_Traitement, data = data)
 ```
 
-##  Variables qualitatives (Sexe vs Groupe de traitement)
+## . Variables qualitatives (Sexe vs Groupe de traitement)
 
 ```{r chi2}
 tab <- table(data$Sexe, data$Groupe_Traitement)
 tab
 chisq.test(tab)
 ```
-###  Visualisation :
+###  . Visualisation :
 
 ```{r Visualisation}
 ggplot(data, aes(x = Sexe, fill = Groupe_Traitement)) +
@@ -200,8 +200,8 @@ ggplot(data, aes(x = Sexe, fill = Groupe_Traitement)) +
 
 ```
 
-#  Analyse multivariée
-##  Régression linéaire multiple
+# . Analyse multivariée
+## . Régression linéaire multiple
 ```{r Modèle explicatif}
 model_lm <- lm(
   Symptom_Score ~ Age + Poids + Tension + Cholesterol +
@@ -214,14 +214,14 @@ summary(model_lm)
 ```{r Tableau de résultats propre}
 broom::tidy(model_lm, conf.int = TRUE)
 ```
-##  Diagnostic du modèle
+## . Diagnostic du modèle
 ```{r Vérification des hypothèses du modèle linéaire}
 par(mfrow = c(2, 2))
 plot(model_lm)
 par(mfrow = c(1, 1))
 ```
-#  Modélisation multivariée avancée
-##  MANOVA globale
+#  . Modélisation multivariée avancée
+## . MANOVA globale
 ```{r MANOVA pour Tension, Cholesterol et Score de symptômes}
 model_mv <- lm(
 cbind(Tension, Cholesterol, Symptom_Score) ~
@@ -230,8 +230,8 @@ data = data
 )
 summary(manova(model_mv), test = "Pillai")
 ```
-#  Régressions univariées (modèles séparés)
-###  Modèle 1 : Tension artérielle
+#  . Régressions univariées (modèles séparés)
+### . Modèle 1 : Tension artérielle
 ```{r Modèle 1 Tension artérielle}
 model_Tension <- lm(
 Tension ~ Age + Poids + Sexe + Groupe_Traitement + Suivi_Jours,
@@ -240,7 +240,7 @@ data = data
 summary(model_Tension)
 
 ```
-###  Modèle 2 : Cholestérol
+###  . Modèle 2 : Cholestérol
 ```{r Modèle 2 Cholestérol}
 model_Cholesterol <- lm(
 Cholesterol ~ Age + Poids + Sexe + Groupe_Traitement + Suivi_Jours,
@@ -250,7 +250,7 @@ summary(model_Cholesterol)
 
 
 ```
-###  Modèle 3 : Score de symptômes
+### . Modèle 3 : Score de symptômes
 ```{r Modèle 3  Score de symptômes}
 model_Symptom <- lm(
 Symptom_Score ~ Age + Poids + Sexe + Groupe_Traitement + Suivi_Jours,
@@ -259,7 +259,7 @@ data = data
 summary(model_Symptom)
 
 ```
-###  Tableau global des coefficients
+###  . Tableau global des coefficients
 ```{r Tableau global des coefficients}
 bind_rows(
 broom::tidy(model_Tension, conf.int = TRUE) %>% mutate(Outcome = "Tension"),
@@ -269,8 +269,8 @@ broom::tidy(model_Symptom, conf.int = TRUE) %>% mutate(Outcome = "Score symptôm
 select(Outcome, term, estimate, conf.low, conf.high, p.value)
 
 ```
-#  Diagnostics des modèles
-##  Diagnostics graphiques classiques
+# . Diagnostics des modèles
+## . Diagnostics graphiques classiques
 ```{r Diagnostics graphiques classiques}
 par(mfrow = c(2,2))
 plot(model_Tension)
@@ -279,7 +279,7 @@ plot(model_Symptom)
 par(mfrow = c(1,1))
 
 ```
-##  Multicolinéarité (VIF)
+## . Multicolinéarité (VIF)
 ```{r Multicolinéarité}
 # Installer le package 'car' une seule fois
 # install.packages("car")
@@ -294,7 +294,7 @@ vif(model_Symptom)
 
 
 ```
-##  Interprétation des VIF (Variance Inflation Factor) :
+## . Interprétation des VIF (Variance Inflation Factor) :
 Les VIF calculés pour les variables explicatives de nos modèles (Age, Poids, Sexe, Groupe_Traitement, Suivi_Jours) sont tous compris entre 1 et 1,16.
 
 Ces valeurs sont très proches de 1, ce qui indique que les variables ne sont pas corrélées entre elles.
@@ -304,7 +304,7 @@ Aucun problème de multicolinéarité n’est détecté.
 Cela signifie que les coefficients estimés dans les modèles de régression peuvent être interprétés de manière fiable, sans distorsion due à des corrélations fortes entre variables explicatives.
 Conclusion : Les facteurs inclus dans les modèles sont indépendants les uns des autres pour l’analyse, et les résultats des régressions sont fiables.
 
-##  Résidus vs valeurs ajustées (ggplot – propre)
+## . Résidus vs valeurs ajustées (ggplot – propre)
 ```{r Résidus vs valeurs}
 plot_residuals <- function(model, titre) {
 ggplot(
@@ -329,19 +329,18 @@ plot_residuals(model_Cholesterol, "Cholestérol – Résidus vs ajustés")
 plot_residuals(model_Symptom, "Score de symptômes – Résidus vs ajustés")
 
 ```
-### Interprétation simplifiée
 
 
 
 
-# 6. Limites et perspectives
+# . Limites et perspectives
 
 - Taille d’échantillon limitée
 - Variables non observées (régime, antécédents…)
 - Données manquantes ou non normalisées
 - Perspectives : ajout de variables, modèles non linéaires, tests robustes
 
-# 7. Conclusion
+# . Conclusion
 
 Cette étude montre les relations entre les caractéristiques des patients et leur état de santé.
 Les analyses descriptives, corrélationnelles et de régression permettent de formuler et vérifier des hypothèses statistiques fiables.

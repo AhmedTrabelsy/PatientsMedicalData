@@ -1,0 +1,418 @@
+---
+title: "Projet Statistique : Analyse des données médicales"
+author: "Ton Nom"
+date: "`r format(Sys.Date(), '%d/%m/%Y')`"
+output:
+  html_document:
+    theme: flatly
+    toc: true
+    toc_float: true
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE
+)
+```
+
+# 1. Introduction
+
+## 1.1 Contexte
+
+Ce projet porte sur un jeu de **données médicales** contenant des informations sur des patients :  
+- caractéristiques démographiques (âge, sexe, poids),  
+- indicateurs cliniques (tension artérielle, cholestérol),  
+- informations de suivi (groupe de traitement, durée de suivi),  
+- et un **score de symptômes** résumant l’état de santé.
+
+## 1.2 Problématique
+
+> Les caractéristiques cliniques (âge, poids, tension, cholestérol, etc.) influencent-elles significativement  
+> l’état de santé des patients, mesuré par le **score de symptômes** ?
+
+## 1.3 Objectifs
+
+- 🔹 **Analyse descriptive** : décrire les variables (statistiques de base, graphiques).
+- 🔹 **Analyse univariée** : étudier séparément chaque variable.
+- 🔹 **Analyse bivariée** : explorer les relations deux à deux (corrélations, comparaisons de groupes).
+- 🔹 **Analyse multivariée** : construire un **modèle explicatif** du score de symptômes.
+- 🔹 Fournir des **interprétations claires** et exploitables.
+
+# 2. Méthodologie et données
+
+## 2.1 Chargement des packages
+
+```{r packages}
+required_packages <- c(
+  "tidyverse",
+  "skimr",
+  "GGally",
+  "psych",
+  "broom",
+  "car"
+)
+
+installed <- rownames(installed.packages())
+for (p in required_packages) {
+  if (!p %in% installed) {
+    install.packages(p, dependencies = TRUE)
+  }
+}
+
+library(tidyverse)
+library(skimr)
+library(GGally)
+library(psych)
+library(broom)
+library(car)
+```
+
+## 2.2 Importation du jeu de données
+
+
+```{r import_data}
+data <- read.csv(
+  "patients_medical_data.csv",
+  sep = ";",
+  header = TRUE,
+  stringsAsFactors = FALSE,
+  na.strings = c("", "NA", "NaN", "NULL", "?")
+)
+
+# Aperçu des premières lignes
+head(data)
+
+# Structure des données
+str(data)
+```
+
+## 2.3 Préparation et typage des variables
+
+On suppose les variables suivantes (adapte si besoin à ton dataset) :
+
+- `Age` : âge en années (quantitative)
+- `Sexe` : "Homme"/"Femme" (qualitative)
+- `Poids` : poids en kg (quantitative)
+- `Tension` : tension artérielle (quantitative)
+- `Cholesterol` : taux de cholestérol (quantitative)
+- `Groupe_Traitement` : type ou groupe de traitement (qualitative)
+- `Suivi_Jours` : durée de suivi en jours (quantitative)
+- `Symptom_Score` : score de symptômes (quantitative, variable principale à expliquer)
+
+```{r recodage}
+data <- data %>%
+  mutate(
+    Sexe = as.factor(Sexe),
+    Groupe_Traitement = as.factor(Groupe_Traitement)
+  )
+
+# Vérification des types
+str(data)
+```
+
+## 2.4 Gestion des valeurs manquantes
+
+```{r missing_values}
+# Nombre de NA par variable
+colSums(is.na(data))
+
+# Proportion de NA par variable
+sapply(data, function(x) mean(is.na(x)))
+```
+
+Interprétation :  
+- Si le pourcentage de NA est **faible (< 5%)**, on peut souvent se permettre de **supprimer** les lignes incomplètes.  
+- Si le pourcentage est **important**, il faudra envisager une **imputation** (moyenne, médiane, etc.).
+
+```{r na_handling}
+# Exemple simple : suppression des lignes ayant au moins une valeur manquante
+data_clean <- na.omit(data)
+
+dim(data)
+dim(data_clean)
+```
+
+Texte à expliquer dans le rapport après exécution :  
+> Nous avons supprimé les observations comportant des valeurs manquantes.  
+> Le nombre d’observations est passé de `r nrow(data)` à `r nrow(data_clean)`.  
+> Cette étape permet de travailler sur un jeu de données complet.
+
+---
+
+# 3. Analyse descriptive et univariée
+
+## 3.1 Résumé global des données
+
+```{r skim}
+skim(data_clean)
+```
+
+Interprétation :  
+- Les tableaux affichent les **statistiques descriptives** (min, max, moyenne, médiane, etc.) pour les variables quantitatives,  
+  et les **effectifs** pour les variables qualitatives.
+
+## 3.2 Variables quantitatives
+
+On considère ici : `Age`, `Poids`, `Tension`, `Cholesterol`, `Suivi_Jours`, `Symptom_Score`.
+
+```{r desc_quanti}
+numeric_vars <- data_clean %>%
+  select(Age, Poids, Tension, Cholesterol, Suivi_Jours, Symptom_Score)
+
+summary(numeric_vars)
+psych::describe(numeric_vars)
+```
+
+### 3.2.1 Histogrammes et boxplots
+
+```{r plots_quanti, fig.height=6, fig.width=8}
+numeric_vars_long <- data_clean %>%
+  select(Age, Poids, Tension, Cholesterol, Suivi_Jours, Symptom_Score) %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "Valeur")
+
+ggplot(numeric_vars_long, aes(x = Valeur)) +
+  geom_histogram(bins = 30, color = "black", fill = "steelblue", alpha = 0.7) +
+  facet_wrap(~ Variable, scales = "free") +
+  theme_minimal() +
+  labs(title = "Histogrammes des variables quantitatives")
+
+ggplot(numeric_vars_long, aes(y = Valeur)) +
+  geom_boxplot(fill = "tomato", alpha = 0.7) +
+  facet_wrap(~ Variable, scales = "free") +
+  theme_minimal() +
+  labs(title = "Boxplots des variables quantitatives")
+```
+
+Interprétation :  
+- Les histogrammes permettent de voir si les distributions sont **symétriques** ou **asymétriques**.  
+- Les boxplots mettent en évidence d’éventuels **outliers** (valeurs extrêmes).
+
+### 3.2.2 Test de normalité (Shapiro-Wilk)
+
+```{r shapiro, warning=FALSE}
+apply(numeric_vars, 2, function(x) {
+  shapiro.test(x)$p.value
+})
+```
+
+Interprétation :  
+- Si le **p-value < 0,05**, on rejette l’hypothèse de normalité pour la variable.  
+- Si le **p-value ≥ 0,05**, la normalité est compatible avec les données.
+
+## 3.3 Variables qualitatives
+
+On s’intéresse ici à `Sexe` et `Groupe_Traitement`.
+
+```{r desc_quali}
+table(data_clean$Sexe)
+prop.table(table(data_clean$Sexe))
+
+table(data_clean$Groupe_Traitement)
+prop.table(table(data_clean$Groupe_Traitement))
+```
+
+```{r bar_quali, fig.height=4, fig.width=8}
+ggplot(data_clean, aes(x = Sexe)) +
+  geom_bar(fill = "steelblue") +
+  theme_minimal() +
+  labs(title = "Répartition des patients par sexe", x = "Sexe", y = "Effectif")
+
+ggplot(data_clean, aes(x = Groupe_Traitement)) +
+  geom_bar(fill = "darkseagreen") +
+  theme_minimal() +
+  labs(title = "Répartition par groupe de traitement", x = "Groupe de traitement", y = "Effectif")
+```
+
+Interprétation (exemple) :  
+> On observe une répartition des sexes relativement équilibrée / déséquilibrée.  
+> Certains groupes de traitement sont plus représentés que d’autres.
+
+---
+
+# 4. Analyse bivariée
+
+## 4.1 Corrélation entre variables quantitatives
+
+```{r corr_matrix}
+cor_matrix <- cor(numeric_vars, use = "complete.obs")
+cor_matrix
+```
+
+```{r corr_plot, fig.height=6, fig.width=6}
+GGally::ggcorr(numeric_vars, label = TRUE)
+```
+
+Interprétation :  
+- Les coefficients de corrélation proches de **+1** indiquent une relation **croissante forte**,  
+- proches de **-1**, une relation **décroissante forte**,  
+- proches de **0**, absence de relation linéaire.
+
+## 4.2 Exemple : Âge vs score de symptômes
+
+```{r age_score, fig.height=4, fig.width=6}
+cor.test(data_clean$Age, data_clean$Symptom_Score)
+
+ggplot(data_clean, aes(x = Age, y = Symptom_Score)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "lm", color = "red", se = TRUE) +
+  theme_minimal() +
+  labs(title = "Âge vs Score de symptômes",
+       x = "Âge",
+       y = "Score de symptômes")
+```
+
+Interprétation (à adapter) :  
+> Le coefficient de corrélation et le p-value indiquent si l’âge est significativement lié au score de symptômes.  
+> Une pente positive signifie que le score augmente avec l’âge, une pente négative l’inverse.
+
+## 4.3 Score de symptômes selon le groupe de traitement
+
+### 4.3.1 Visualisation
+
+```{r boxplot_traitement, fig.height=4, fig.width=6}
+ggplot(data_clean, aes(x = Groupe_Traitement, y = Symptom_Score, fill = Groupe_Traitement)) +
+  geom_boxplot(alpha = 0.8) +
+  theme_minimal() +
+  labs(title = "Score de symptômes selon le groupe de traitement",
+       x = "Groupe de traitement",
+       y = "Score de symptômes") +
+  theme(legend.position = "none")
+```
+
+### 4.3.2 ANOVA (si conditions de normalité/homogénéité raisonnables)
+
+```{r anova_traitement}
+anova_model <- aov(Symptom_Score ~ Groupe_Traitement, data = data_clean)
+summary(anova_model)
+```
+
+Interprétation :  
+- Si le **p-value global < 0,05**, il existe une **différence significative** de score de symptômes entre au moins deux groupes.  
+- Sinon, les moyennes ne diffèrent pas significativement.
+
+## 4.4 Score de symptômes selon le sexe
+
+```{r ttest_sexe}
+t.test(Symptom_Score ~ Sexe, data = data_clean, var.equal = FALSE)
+```
+
+Interprétation :  
+> Le test de Student permet de comparer la moyenne du score entre les sexes.  
+> Si **p < 0,05**, la différence est significative.
+
+## 4.5 Association entre deux variables qualitatives : Sexe × Groupe de traitement
+
+```{r chi2}
+tab_sexe_traitement <- table(data_clean$Sexe, data_clean$Groupe_Traitement)
+tab_sexe_traitement
+
+chisq.test(tab_sexe_traitement)
+```
+
+Interprétation :  
+- Si le **p-value du χ² < 0,05**, il existe une association significative entre le sexe et le groupe de traitement.
+
+---
+
+# 5. Analyse multivariée : régression linéaire multiple
+
+Nous cherchons à expliquer le **score de symptômes** à partir des autres variables.
+
+## 5.1 Modèle global
+
+```{r lm_model}
+modele_lm <- lm(
+  Symptom_Score ~ Age + Sexe + Poids + Tension + Cholesterol + Groupe_Traitement + Suivi_Jours,
+  data = data_clean
+)
+
+summary(modele_lm)
+```
+
+Interprétation (générale) :  
+- Le **R²** indique la proportion de la variabilité du score expliquée par le modèle.  
+- Chaque coefficient représente l’effet **moyen** de la variable, **à variables constantes**.  
+- Si le p-value d’un coefficient est **< 0,05**, l’effet est statistiquement significatif.
+
+## 5.2 Coefficients sous forme de tableau propre
+
+```{r tidy_lm}
+tidy(modele_lm, conf.int = TRUE)
+```
+
+Tu peux commenter dans le texte :  
+> On identifie les variables qui ont un effet significatif sur le score de symptômes (par ex. âge, tension, etc.).  
+> Le signe du coefficient (positif ou négatif) indique le sens de l’effet.
+
+## 5.3 Vérification des hypothèses du modèle
+
+### 5.3.1 Résidus vs valeurs ajustées (homoscédasticité)
+
+```{r resid_vs_fitted, fig.height=4, fig.width=6}
+ggplot(data.frame(
+  fitted = fitted(modele_lm),
+  resid = resid(modele_lm)
+), aes(x = fitted, y = resid)) +
+  geom_point(alpha = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Résidus vs valeurs ajustées",
+       x = "Valeurs ajustées",
+       y = "Résidus")
+```
+
+Interprétation :  
+> On recherche une **dispersion aléatoire** des résidus autour de 0.  
+> Des motifs particuliers (courbe, entonnoir…) peuvent indiquer une violation de l’hypothèse d’homoscédasticité.
+
+### 5.3.2 Normalité des résidus
+
+```{r resid_normality, fig.height=4, fig.width=6}
+qqnorm(resid(modele_lm))
+qqline(resid(modele_lm), col = "red")
+
+shapiro.test(resid(modele_lm))
+```
+
+Interprétation :  
+- Si les points sont proches de la droite sur le QQ-plot, la normalité est raisonnable.  
+- Le test de Shapiro (p-value ≥ 0,05) confirme la normalité des résidus.
+
+### 5.3.3 Multicolinéarité (VIF)
+
+```{r vif}
+vif(modele_lm)
+```
+
+Interprétation :  
+- Un **VIF > 5** (ou > 10 selon les auteurs) peut signaler une **colinéarité** importante entre variables explicatives.  
+- Dans ce cas, il peut être pertinent de **retirer** ou **combiner** certaines variables.
+
+---
+
+# 6. Synthèse et conclusion
+
+## 6.1 Résumé des principaux résultats
+
+Dans cette partie, tu peux commenter en texte libre, par exemple :
+
+- Les analyses **descriptives** ont montré que :
+  - l’âge moyen des patients est de … ans,  
+  - la distribution du cholestérol est (normale / asymétrique / avec outliers), etc.
+- Les analyses **bivariées** ont mis en évidence que :
+  - il existe / n’existe pas de corrélation significative entre l’âge et le score de symptômes,  
+  - certains groupes de traitement présentent des scores significativement différents.
+- L’analyse **multivariée** a montré que :
+  - les variables les plus importantes pour expliquer le score de symptômes sont …  
+  - le modèle explique environ **R² = …** de la variabilité du score.
+
+## 6.2 Conclusion générale
+
+> Ce projet statistique a permis d’explorer de manière structurée un jeu de données médicales.  
+> Les étapes successives (préparation des données, analyses descriptives, univariées, bivariées et multivariées)  
+> ont permis de dégager des **facteurs explicatifs** du score de symptômes.  
+> Ces résultats peuvent guider d’éventuelles **décisions cliniques** ou **travaux de recherche futurs**.
+

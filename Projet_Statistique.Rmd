@@ -16,23 +16,23 @@ output:
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
-# 1. Introduction
+# . Introduction
 
-## 1.1 Contexte
+##  Contexte
 Ce projet vise à étudier un jeu de données médicales contenant des informations sur les patients : âge, sexe, poids, tension artérielle, cholestérol, groupe de traitement, durée de suivi et score de symptômes.
 
-## 1.2 Problématique
+##  Problématique
 > Les caractéristiques cliniques (âge, poids, tension, cholestérol) et le traitement influencent-ils significativement l’état des patients (score de symptômes) ?
 
-## 1.3 Objectifs
+##  Objectifs
 - Décrire les variables (analyse univariée)
 - Étudier les relations entre variables (analyse bivariée)
 - Construire un modèle explicatif (analyse multivariée)
 - Tester les hypothèses statistiques
 
-# 2. Préparation des données
+#  Préparation des données
 
-## 2.1 Chargement des packages
+##  Chargement des packages
 
 ```{r packages}
 # Installer les packages si nécessaires :
@@ -46,7 +46,7 @@ library(broom)
 library(effsize)
 ```
 
-## 2.2 Importation du jeu de données
+##  Importation du jeu de données
 
 ```{r import}
 data <- read.csv(file.choose(),
@@ -60,7 +60,7 @@ head(data)
 str(data)
 ```
 
-## 2.3 Nettoyage des données
+##  Nettoyage des données
 
 ```{r cleaning}
 data <- data %>%
@@ -87,7 +87,7 @@ data <- distinct(data)
 skim(data)
 ```
 
-## 2.4 Gestion des valeurs manquantes
+##  Gestion des valeurs manquantes
 
 ```{r missing-values}
 colSums(is.na(data))
@@ -95,9 +95,9 @@ data <- na.omit(data)
 nrow(data)
 ```
 
-# 3. Analyse univariée
+#  Analyse univariée
 
-## 3.1 Variables quantitatives
+##  Variables quantitatives
 
 ```{r univariate-num}
 quant_vars <- c("Age", "Poids", "Tension", "Cholesterol", "Suivi_Jours", "Symptom_Score")
@@ -129,7 +129,7 @@ for (v in quant_vars) {
 }
 ```
 
-## 3.2 Variables qualitatives
+##  Variables qualitatives
 
 ```{r univariate-cat}
 table(data$Sexe)
@@ -144,9 +144,9 @@ ggplot(data, aes(x = Groupe_Traitement)) +
   labs(title = "Répartition par groupe de traitement", x = "Groupe", y = "Effectif")
 ```
 
-# 4. Analyse bivariée
+#  Analyse bivariée
 
-## 4.1 Corrélations entre variables quantitatives
+##  Corrélations entre variables quantitatives
 
 ```{r correlation}
 cor_matrix <- cor(data[, quant_vars])
@@ -159,14 +159,13 @@ GGally::ggcorr(data[, quant_vars], label = TRUE)
 
 ```{r cor-age}
 cor.test(data$Age, data$Symptom_Score)
-
 ggplot(data, aes(x = Age, y = Symptom_Score)) +
   geom_point() +
   geom_smooth(method = "lm", color = "red") +
   labs(title = "Âge vs Score de symptômes")
 ```
 
-## 4.2 Comparaison de moyennes (score selon le traitement)
+##  Comparaison de moyennes (score selon le traitement)
 
 ```{r anova}
 ggplot(data, aes(x = Groupe_Traitement, y = Symptom_Score, fill = Groupe_Traitement)) +
@@ -181,16 +180,155 @@ summary(anova_test)
 kruskal.test(Symptom_Score ~ Groupe_Traitement, data = data)
 ```
 
-## 4.3 Variables qualitatives (Sexe vs Groupe de traitement)
+##  Variables qualitatives (Sexe vs Groupe de traitement)
 
 ```{r chi2}
 tab <- table(data$Sexe, data$Groupe_Traitement)
 tab
 chisq.test(tab)
 ```
+###  Visualisation :
+
+```{r Visualisation}
+ggplot(data, aes(x = Sexe, fill = Groupe_Traitement)) +
+  geom_bar(position = "fill") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title = "Répartition des groupes de traitement selon le sexe",
+       x = "Sexe",
+       y = "Proportion") +
+  theme_minimal()
+
+```
+
+#  Analyse multivariée
+##  Régression linéaire multiple
+```{r Modèle explicatif}
+model_lm <- lm(
+  Symptom_Score ~ Age + Poids + Tension + Cholesterol +
+    Sexe + Groupe_Traitement + Suivi_Jours,
+  data = data
+)
+
+summary(model_lm)
+```
+```{r Tableau de résultats propre}
+broom::tidy(model_lm, conf.int = TRUE)
+```
+##  Diagnostic du modèle
+```{r Vérification des hypothèses du modèle linéaire}
+par(mfrow = c(2, 2))
+plot(model_lm)
+par(mfrow = c(1, 1))
+```
+#  Modélisation multivariée avancée
+##  MANOVA globale
+```{r MANOVA pour Tension, Cholesterol et Score de symptômes}
+model_mv <- lm(
+cbind(Tension, Cholesterol, Symptom_Score) ~
+Age + Poids + Sexe + Groupe_Traitement + Suivi_Jours,
+data = data
+)
+summary(manova(model_mv), test = "Pillai")
+```
+#  Régressions univariées (modèles séparés)
+###  Modèle 1 : Tension artérielle
+```{r Modèle 1 Tension artérielle}
+model_Tension <- lm(
+Tension ~ Age + Poids + Sexe + Groupe_Traitement + Suivi_Jours,
+data = data
+)
+summary(model_Tension)
+
+```
+###  Modèle 2 : Cholestérol
+```{r Modèle 2 Cholestérol}
+model_Cholesterol <- lm(
+Cholesterol ~ Age + Poids + Sexe + Groupe_Traitement + Suivi_Jours,
+data = data
+)
+summary(model_Cholesterol)
 
 
+```
+###  Modèle 3 : Score de symptômes
+```{r Modèle 3  Score de symptômes}
+model_Symptom <- lm(
+Symptom_Score ~ Age + Poids + Sexe + Groupe_Traitement + Suivi_Jours,
+data = data
+)
+summary(model_Symptom)
 
+```
+###  Tableau global des coefficients
+```{r Tableau global des coefficients}
+bind_rows(
+broom::tidy(model_Tension, conf.int = TRUE) %>% mutate(Outcome = "Tension"),
+broom::tidy(model_Cholesterol, conf.int = TRUE) %>% mutate(Outcome = "Cholestérol"),
+broom::tidy(model_Symptom, conf.int = TRUE) %>% mutate(Outcome = "Score symptômes")
+) %>%
+select(Outcome, term, estimate, conf.low, conf.high, p.value)
+
+```
+#  Diagnostics des modèles
+##  Diagnostics graphiques classiques
+```{r Diagnostics graphiques classiques}
+par(mfrow = c(2,2))
+plot(model_Tension)
+plot(model_Cholesterol)
+plot(model_Symptom)
+par(mfrow = c(1,1))
+
+```
+##  Multicolinéarité (VIF)
+```{r Multicolinéarité}
+# Installer le package 'car' une seule fois
+# install.packages("car")
+
+# Charger le package
+library(car)
+
+# Calcul des VIF
+vif(model_Tension)
+vif(model_Cholesterol)
+vif(model_Symptom)
+
+
+```
+##  Interprétation des VIF (Variance Inflation Factor) :
+Les VIF calculés pour les variables explicatives de nos modèles (Age, Poids, Sexe, Groupe_Traitement, Suivi_Jours) sont tous compris entre 1 et 1,16.
+
+Ces valeurs sont très proches de 1, ce qui indique que les variables ne sont pas corrélées entre elles.
+
+Aucun problème de multicolinéarité n’est détecté.
+
+Cela signifie que les coefficients estimés dans les modèles de régression peuvent être interprétés de manière fiable, sans distorsion due à des corrélations fortes entre variables explicatives.
+Conclusion : Les facteurs inclus dans les modèles sont indépendants les uns des autres pour l’analyse, et les résultats des régressions sont fiables.
+
+##  Résidus vs valeurs ajustées (ggplot – propre)
+```{r Résidus vs valeurs}
+plot_residuals <- function(model, titre) {
+ggplot(
+data.frame(
+fitted = fitted(model),
+residuals = resid(model)
+),
+aes(x = fitted, y = residuals)
+) +
+geom_point(alpha = 0.5) +
+geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+labs(
+title = titre,
+x = "Valeurs ajustées",
+y = "Résidus"
+) +
+theme_minimal()
+}
+
+plot_residuals(model_Tension, "Tension – Résidus vs ajustés")
+plot_residuals(model_Cholesterol, "Cholestérol – Résidus vs ajustés")
+plot_residuals(model_Symptom, "Score de symptômes – Résidus vs ajustés")
+
+```
 ### Interprétation simplifiée
 
 
@@ -208,123 +346,14 @@ chisq.test(tab)
 Cette étude montre les relations entre les caractéristiques des patients et leur état de santé.
 Les analyses descriptives, corrélationnelles et de régression permettent de formuler et vérifier des hypothèses statistiques fiables.
 
-## 4.4 Comparaison du Symptom_Score entre Hommes et Femmes
-
-### Visualisation : Boxplot avec points individuels
-
-```{r boxplot-sexe, fig.width=8, fig.height=6}
-ggplot(data, aes(x = Sexe, y = Symptom_Score, fill = Sexe)) +
-  geom_boxplot(alpha = 0.6, outlier.shape = NA) +  # Boîtes semi-transparentes sans doublons d'outliers
-  geom_jitter(width = 0.2, alpha = 0.6, size = 2) +  # Points individuels pour voir la distribution
-  scale_fill_manual(values = c("F" = "#e74c3c", "M" = "#3498db")) +
-  labs(title = "Comparaison du Score de Symptômes par Sexe",
-       x = "Sexe",
-       y = "Score de Symptômes") +
-  theme_minimal(base_size = 14)
-```
-
-#Vérification de la normalité dans chaque groupe
-```{r}
-shapiro_H <- shapiro.test(data$Symptom_Score[data$Sexe == "M"])
-shapiro_F <- shapiro.test(data$Symptom_Score[data$Sexe == "F"])
-
-cat("P-value Shapiro-Wilk - Hommes :", round(shapiro_H$p.value, 4), "\n")
-cat("P-value Shapiro-Wilk - Femmes :", round(shapiro_F$p.value, 4), "\n")
-```
-#Test de comparaison et taille d'effet
-
-
-# Chargement du package pour Cohen's d
-
-```{r}
 
 
 
-if(shapiro_H$p.value > 0.05 & shapiro_F$p.value > 0.05) {
-  cat("\n--- Test paramétrique : t-test de Welch ---\n")
-  test_res <- t.test(Symptom_Score ~ Sexe, data = data, var.equal = FALSE)
-  print(test_res)
-  
-  library(effsize)
-  d_res <- cohen.d(Symptom_Score ~ Sexe, data = data)
-  cat("\nTaille d'effet :\n")
-  print(d_res)
-  
-} else {
-  cat("\n--- Test non paramétrique : Wilcoxon-Mann-Whitney ---\n")
-  test_res <- wilcox.test(Symptom_Score ~ Sexe, data = data)
-  print(test_res)
-  
-  # Taille d'effet r (approximation)
-  z <- qnorm(test_res$p.value / 2)
-  r <- abs(z) / sqrt(nrow(data))
-  cat(sprintf("\nTaille d'effet approximative (r) = %.3f\n", r))
-  cat("Interprétation de r : |r| < 0.3 → petit ; 0.3-0.5 → modéré ; > 0.5 → grand\n")
-}
-```
 
-# ANALYSES AVANCÉES 
 
-# A. Effet de la tranche d'âge sur le Symptom_Score (Kruskal-Wallis car non normal)
-```{r}
-cat("\n>>> A. Effet de l'âge groupé sur le Symptom_Score (Kruskal-Wallis)\n")
-```
-```{r}
-data$age_groupe <- cut(data$Age, 
-                       breaks = c(0, 40, 60, 100), 
-                       labels = c("Jeune (<40 ans)", "Moyen (40-60 ans)", "Senior (>60 ans)"))
 
-kruskal_age <- kruskal.test(Symptom_Score ~ age_groupe, data = data)
-print(kruskal_age)
-```
 
-# B. Effet du niveau de cholestérol sur le Symptom_Score (Kruskal-Wallis)
-```{r}
-cat("\n>>> B. Effet du cholestérol groupé sur le Symptom_Score (Kruskal-Wallis)\n")
-```
-```{r}
-data$chol_groupe <- cut(data$Cholesterol, 
-                        breaks = c(0, 200, 1000), 
-                        labels = c("Normal (≤200)", "Élevé (>200)"))
 
-kruskal_chol <- kruskal.test(Symptom_Score ~ chol_groupe, data = data)
-print(kruskal_chol)
-```
 
-# C. Test d'interaction : Le groupe de traitement modère-t-il l'effet de l'âge ?
-```{r}
-cat("\n>>> C. TEST D'INTERACTION : Groupe_Traitement × Âge sur Symptom_Score\n")
-model_inter_age <- lm(Symptom_Score ~ Groupe_Traitement * Age, data = data)
-print(summary(model_inter_age)$coefficients)
-cat("(Regarder la ligne 'Groupe_TraitementB:Age'. Si p < 0.05, l'interaction existe : l'effet de l'âge diffère selon le traitement.)\n")
-```
-# Bonus : Interaction Sexe × Groupe_Traitement
-```{r}
-cat("\n>>> D. BONUS : Interaction Sexe × Groupe_Traitement sur Symptom_Score\n")
-```
-```{r}
-model_inter_sexe <- lm(Symptom_Score ~ Groupe_Traitement * Sexe, data = data)
-print(summary(model_inter_sexe)$coefficients)
-cat("(Regarder la ligne 'Groupe_TraitementB:SexeM'. Si p < 0.05, l'effet du traitement diffère selon le sexe.)\n")
-```
 
-# Graphique Final Synthèse
-```{r}
-cat("\n>>> Graphique de synthèse final\n")
-```
-```{r}
-print(
-  ggplot(data, aes(x = Age, y = Symptom_Score, color = Groupe_Traitement)) +
-    geom_point(size = 3, alpha = 0.8) +
-    geom_smooth(method = "lm", se = TRUE, size = 1.2) +
-    facet_wrap(~ Sexe) +
-    labs(title = "Modèle Final : Âge et Score de Symptômes",
-         subtitle = "Lignes de régression par groupe de traitement, stratifié par sexe",
-         x = "Âge (ans)",
-         y = "Score de Symptômes",
-         color = "Groupe Traitement") +
-    theme_minimal(base_size = 14)
-)
 
-cat("\n--- FIN DE L'ANALYSE EXPERTE ---\n")
-```

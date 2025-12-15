@@ -1,6 +1,6 @@
 ---
 title: "Projet Statistique : Analyse des données médicales"
-author: "Ton Nom"
+author: 
 date: "`r format(Sys.Date(), '%d/%m/%Y')`"
 output:
   html_document:

@@ -18,9 +18,9 @@ knitr::opts_chunk$set(
 )
 ```
 
-# 1. Introduction
+# . Introduction
 
-## 1.1 Contexte
+## . Contexte
 
 Ce projet porte sur un jeu de **données médicales** contenant des informations sur des patients :  
 - caractéristiques démographiques (âge, sexe, poids),  
@@ -28,12 +28,12 @@ Ce projet porte sur un jeu de **données médicales** contenant des informations
 - informations de suivi (groupe de traitement, durée de suivi),  
 - et un **score de symptômes** résumant l’état de santé.
 
-## 1.2 Problématique
+## . Problématique
 
 > Les caractéristiques cliniques (âge, poids, tension, cholestérol, etc.) influencent-elles significativement  
 > l’état de santé des patients, mesuré par le **score de symptômes** ?
 
-## 1.3 Objectifs
+## . Objectifs
 
 - 🔹 **Analyse descriptive** : décrire les variables (statistiques de base, graphiques).
 - 🔹 **Analyse univariée** : étudier séparément chaque variable.
@@ -41,9 +41,9 @@ Ce projet porte sur un jeu de **données médicales** contenant des informations
 - 🔹 **Analyse multivariée** : construire un **modèle explicatif** du score de symptômes.
 - 🔹 Fournir des **interprétations claires** et exploitables.
 
-# 2. Méthodologie et données
+# . Méthodologie et données
 
-## 2.1 Chargement des packages
+## . Chargement des packages
 
 ```{r packages}
 required_packages <- c(
@@ -70,7 +70,7 @@ library(broom)
 library(car)
 ```
 
-## 2.2 Importation du jeu de données
+## . Importation du jeu de données
 
 
 ```{r import_data}
@@ -89,7 +89,7 @@ head(data)
 str(data)
 ```
 
-## 2.3 Préparation et typage des variables
+## . Préparation et typage des variables
 
 On suppose les variables suivantes (adapte si besoin à ton dataset) :
 
@@ -113,7 +113,7 @@ data <- data %>%
 str(data)
 ```
 
-## 2.4 Gestion des valeurs manquantes
+## . Gestion des valeurs manquantes
 
 ```{r missing_values}
 # Nombre de NA par variable
@@ -142,9 +142,9 @@ Texte à expliquer dans le rapport après exécution :
 
 ---
 
-# 3. Analyse descriptive et univariée
+# . Analyse descriptive et univariée
 
-## 3.1 Résumé global des données
+## . Résumé global des données
 
 ```{r skim}
 skim(data_clean)
@@ -154,7 +154,7 @@ Interprétation :
 - Les tableaux affichent les **statistiques descriptives** (min, max, moyenne, médiane, etc.) pour les variables quantitatives,  
   et les **effectifs** pour les variables qualitatives.
 
-## 3.2 Variables quantitatives
+## . Variables quantitatives
 
 On considère ici : `Age`, `Poids`, `Tension`, `Cholesterol`, `Suivi_Jours`, `Symptom_Score`.
 
@@ -166,7 +166,7 @@ summary(numeric_vars)
 psych::describe(numeric_vars)
 ```
 
-### 3.2.1 Histogrammes et boxplots
+### . Histogrammes et boxplots
 
 ```{r plots_quanti, fig.height=6, fig.width=8}
 numeric_vars_long <- data_clean %>%
@@ -190,7 +190,7 @@ Interprétation :
 - Les histogrammes permettent de voir si les distributions sont **symétriques** ou **asymétriques**.  
 - Les boxplots mettent en évidence d’éventuels **outliers** (valeurs extrêmes).
 
-### 3.2.2 Test de normalité (Shapiro-Wilk)
+### . Test de normalité (Shapiro-Wilk)
 
 ```{r shapiro, warning=FALSE}
 apply(numeric_vars, 2, function(x) {
@@ -232,9 +232,9 @@ Interprétation (exemple) :
 
 ---
 
-# 4. Analyse bivariée
+# . Analyse bivariée
 
-## 4.1 Corrélation entre variables quantitatives
+## . Corrélation entre variables quantitatives
 
 ```{r corr_matrix}
 cor_matrix <- cor(numeric_vars, use = "complete.obs")
@@ -250,7 +250,7 @@ Interprétation :
 - proches de **-1**, une relation **décroissante forte**,  
 - proches de **0**, absence de relation linéaire.
 
-## 4.2 Exemple : Âge vs score de symptômes
+## . Exemple : Âge vs score de symptômes
 
 ```{r age_score, fig.height=4, fig.width=6}
 cor.test(data_clean$Age, data_clean$Symptom_Score)
@@ -268,9 +268,9 @@ Interprétation (à adapter) :
 > Le coefficient de corrélation et le p-value indiquent si l’âge est significativement lié au score de symptômes.  
 > Une pente positive signifie que le score augmente avec l’âge, une pente négative l’inverse.
 
-## 4.3 Score de symptômes selon le groupe de traitement
+## . Score de symptômes selon le groupe de traitement
 
-### 4.3.1 Visualisation
+### . Visualisation
 
 ```{r boxplot_traitement, fig.height=4, fig.width=6}
 ggplot(data_clean, aes(x = Groupe_Traitement, y = Symptom_Score, fill = Groupe_Traitement)) +
@@ -282,7 +282,7 @@ ggplot(data_clean, aes(x = Groupe_Traitement, y = Symptom_Score, fill = Groupe_T
   theme(legend.position = "none")
 ```
 
-### 4.3.2 ANOVA (si conditions de normalité/homogénéité raisonnables)
+### . ANOVA (si conditions de normalité/homogénéité raisonnables)
 
 ```{r anova_traitement}
 anova_model <- aov(Symptom_Score ~ Groupe_Traitement, data = data_clean)
@@ -293,7 +293,7 @@ Interprétation :
 - Si le **p-value global < 0,05**, il existe une **différence significative** de score de symptômes entre au moins deux groupes.  
 - Sinon, les moyennes ne diffèrent pas significativement.
 
-## 4.4 Score de symptômes selon le sexe
+## . Score de symptômes selon le sexe
 
 ```{r ttest_sexe}
 t.test(Symptom_Score ~ Sexe, data = data_clean, var.equal = FALSE)
@@ -303,7 +303,7 @@ Interprétation :
 > Le test de Student permet de comparer la moyenne du score entre les sexes.  
 > Si **p < 0,05**, la différence est significative.
 
-## 4.5 Association entre deux variables qualitatives : Sexe × Groupe de traitement
+## . Association entre deux variables qualitatives : Sexe × Groupe de traitement
 
 ```{r chi2}
 tab_sexe_traitement <- table(data_clean$Sexe, data_clean$Groupe_Traitement)
@@ -317,11 +317,11 @@ Interprétation :
 
 ---
 
-# 5. Analyse multivariée : régression linéaire multiple
+# . Analyse multivariée : régression linéaire multiple
 
 Nous cherchons à expliquer le **score de symptômes** à partir des autres variables.
 
-## 5.1 Modèle global
+## 1 Modèle global
 
 ```{r lm_model}
 modele_lm <- lm(
@@ -337,7 +337,7 @@ Interprétation (générale) :
 - Chaque coefficient représente l’effet **moyen** de la variable, **à variables constantes**.  
 - Si le p-value d’un coefficient est **< 0,05**, l’effet est statistiquement significatif.
 
-## 5.2 Coefficients sous forme de tableau propre
+## . Coefficients sous forme de tableau propre
 
 ```{r tidy_lm}
 tidy(modele_lm, conf.int = TRUE)
@@ -347,9 +347,9 @@ Tu peux commenter dans le texte :
 > On identifie les variables qui ont un effet significatif sur le score de symptômes (par ex. âge, tension, etc.).  
 > Le signe du coefficient (positif ou négatif) indique le sens de l’effet.
 
-## 5.3 Vérification des hypothèses du modèle
+## . Vérification des hypothèses du modèle
 
-### 5.3.1 Résidus vs valeurs ajustées (homoscédasticité)
+### . Résidus vs valeurs ajustées (homoscédasticité)
 
 ```{r resid_vs_fitted, fig.height=4, fig.width=6}
 ggplot(data.frame(
@@ -368,7 +368,7 @@ Interprétation :
 > On recherche une **dispersion aléatoire** des résidus autour de 0.  
 > Des motifs particuliers (courbe, entonnoir…) peuvent indiquer une violation de l’hypothèse d’homoscédasticité.
 
-### 5.3.2 Normalité des résidus
+### . Normalité des résidus
 
 ```{r resid_normality, fig.height=4, fig.width=6}
 qqnorm(resid(modele_lm))
@@ -381,7 +381,7 @@ Interprétation :
 - Si les points sont proches de la droite sur le QQ-plot, la normalité est raisonnable.  
 - Le test de Shapiro (p-value ≥ 0,05) confirme la normalité des résidus.
 
-### 5.3.3 Multicolinéarité (VIF)
+### . Multicolinéarité (VIF)
 
 ```{r vif}
 vif(modele_lm)
@@ -393,9 +393,9 @@ Interprétation :
 
 ---
 
-# 6. Synthèse et conclusion
+# . Synthèse et conclusion
 
-## 6.1 Résumé des principaux résultats
+## . Résumé des principaux résultats
 
 Dans cette partie, tu peux commenter en texte libre, par exemple :
 
@@ -409,7 +409,7 @@ Dans cette partie, tu peux commenter en texte libre, par exemple :
   - les variables les plus importantes pour expliquer le score de symptômes sont …  
   - le modèle explique environ **R² = …** de la variabilité du score.
 
-## 6.2 Conclusion générale
+## . Conclusion générale
 
 > Ce projet statistique a permis d’explorer de manière structurée un jeu de données médicales.  
 > Les étapes successives (préparation des données, analyses descriptives, univariées, bivariées et multivariées)  

@@ -1,2 +1,7 @@
 # Support folder
 support/
+# R project files
+.RData
+.Rhistory
+.project
+.Rproj.user

@@ -68,6 +68,8 @@ library(GGally)
 library(psych)
 library(broom)
 library(car)
+library(dplyr)
+library(ggplot2)
 ```
 
 ## . Importation du jeu de données
@@ -127,19 +129,88 @@ Interprétation :
 - Si le pourcentage de NA est **faible (< 5%)**, on peut souvent se permettre de **supprimer** les lignes incomplètes.  
 - Si le pourcentage est **important**, il faudra envisager une **imputation** (moyenne, médiane, etc.).
 
-```{r na_handling}
-# Exemple simple : suppression des lignes ayant au moins une valeur manquante
-data_clean <- na.omit(data)
+```{r imputer_valmanquante}
+#  imputation avec median pour une valeur manquante
 
-dim(data)
-dim(data_clean)
+data_clean <- data %>%
+  mutate(
+    Poids       = ifelse(is.na(Poids),       median(Poids, na.rm = TRUE),       Poids),
+    Tension     = ifelse(is.na(Tension),     median(Tension, na.rm = TRUE),     Tension),
+    Cholesterol = ifelse(is.na(Cholesterol), median(Cholesterol, na.rm = TRUE), Cholesterol)
+  )
+
+# Vérification :  aucun NA
+colSums(is.na(data_clean))
 ```
 
-Texte à expliquer dans le rapport après exécution :  
-> Nous avons supprimé les observations comportant des valeurs manquantes.  
-> Le nombre d’observations est passé de `r nrow(data)` à `r nrow(data_clean)`.  
-> Cette étape permet de travailler sur un jeu de données complet.
 
+> Nous avons imputés  les valeurs manquantes par mediane   
+
+
+## . Gestion des valeurs doublons
+```{r verif_doublons}
+# Vérification du nombre de doublons complets (lignes identiques à 100%)
+nb_doublons <- sum(duplicated(data) | duplicated(data, fromLast = TRUE))
+cat("Nombre de lignes en doublon complet :", nb_doublons, "\n")
+
+
+```
+## . Gestion des valeurs  aberrante
+```{r val_aberante}
+
+# Variables dans l'ordre que tu veux afficher
+vars_quant <- c("Age", "Poids", "Tension", "Cholesterol", "Suivi_Jours", "Symptom_Score")
+
+data_clean %>%
+  select(all_of(vars_quant)) %>%
+  pivot_longer(everything(), names_to = "Variable", values_to = "Valeur") %>%
+  # Ici la clé : on transforme Variable en factor avec l'ordre désiré
+  mutate(Variable = factor(Variable, levels = vars_quant)) %>%
+  ggplot(aes(x = Variable, y = Valeur)) +
+  geom_boxplot(fill = "lightblue", outlier.colour = "red", outlier.size = 3) +
+  facet_wrap(~ Variable, scales = "free_y", ncol = 3) +  
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),        
+    axis.ticks.x = element_blank(),      
+    strip.text = element_text(size = 12, face = "bold") 
+  ) +
+  labs(
+    title = "Détection des valeurs aberrantes par boxplot",
+    caption = "Points rouges = outliers selon la règle IQR"
+  )
+
+```
+```{r val_correctionaberrante}
+vars_quant <- c("Age", "Poids", "Tension", "Cholesterol", "Suivi_Jours", "Symptom_Score")
+
+# Fonction pour détecter les outliers (méthode IQR)
+detect_outliers <- function(x) {
+  Q1 <- quantile(x, 0.25, na.rm = TRUE)
+  Q3 <- quantile(x, 0.75, na.rm = TRUE)
+  IQR <- Q3 - Q1
+  lower <- Q1 - 1.5 * IQR
+  upper <- Q3 + 1.5 * IQR
+  which(x < lower | x > upper)
+}
+
+# Comptage des outliers par variable
+outliers_count <- sapply(data_clean[vars_quant], function(x) length(detect_outliers(x)))
+outliers_count
+
+# Visualisation avec boxplots
+data_clean_long <- data_clean %>% 
+  select(all_of(vars_quant)) %>% 
+  pivot_longer(everything(), names_to = "Variable", values_to = "Valeur")
+
+ggplot(data_clean_long, aes(x = Variable, y = Valeur)) +
+  geom_boxplot(fill = "lightblue", outlier.colour = "red", outlier.size = 3) +
+  theme_minimal() +
+  labs(title = "Boxplots des variables quantitatives (détection des outliers)",
+       subtitle = "Méthode IQR × 1.5") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
 ---
 
 # . Analyse descriptive et univariée
@@ -393,21 +464,34 @@ Interprétation :
 
 ---
 
+# . Limites et perspectives
+
+- Taille d’échantillon limitée
+- Variables non observées (régime, antécédents…)
+- Données manquantes ou non normalisées
+- Perspectives : ajout de variables, modèles non linéaires, tests robustes
+
 # . Synthèse et conclusion
 
 ## . Résumé des principaux résultats
 
-Dans cette partie, tu peux commenter en texte libre, par exemple :
 
-- Les analyses **descriptives** ont montré que :
-  - l’âge moyen des patients est de … ans,  
-  - la distribution du cholestérol est (normale / asymétrique / avec outliers), etc.
-- Les analyses **bivariées** ont mis en évidence que :
-  - il existe / n’existe pas de corrélation significative entre l’âge et le score de symptômes,  
-  - certains groupes de traitement présentent des scores significativement différents.
-- L’analyse **multivariée** a montré que :
-  - les variables les plus importantes pour expliquer le score de symptômes sont …  
-  - le modèle explique environ **R² = …** de la variabilité du score.
+
+- **Analyses descriptives** :  
+  L’échantillon compte 100 patients avec une répartition équilibrée par sexe et par groupe de traitement (A et B).  
+  L’âge moyen est d’environ 52 ans. Les variables Poids, Tension et Cholestérol présentaient ~10 % de valeurs manquantes (imputées par la médiane) et quelques outliers (détectés et visibles sur les boxplots).
+
+- **Analyses bivariées** :  
+  Les corrélations entre variables quantitatives sont globalement faibles.  
+  Aucune différence significative du score de symptômes selon le sexe (test t, p > 0,05).  
+  En revanche, une différence significative est observée entre les groupes de traitement (ANOVA, p < 0,05).
+
+- **Analyse multivariée** :  
+  La variable la plus influente est le groupe de traitement, suivie éventuellement par la tension artérielle.  
+  Les autres variables (âge, poids, cholestérol) n’ont pas d’effet indépendant significatif après ajustement.  
+  Les hypothèses du modèle (normalité des résidus, homoscédasticité, absence de multicolinéarité forte) sont satisfaites.
+
+En résumé, le **groupe de traitement** est le principal facteur associé au score de symptômes dans cet échantillon.
 
 ## . Conclusion générale
 
